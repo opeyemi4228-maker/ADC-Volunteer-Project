@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Files the server reads at runtime; listed so hosts like Vercel include them.
+  outputFileTracingIncludes: {
+    "/**": ["./public/geo/**/*", "./public/brand/**/*", "./assets/fonts/**/*"],
+  },
   serverExternalPackages: ["sharp", "nodemailer", "pdf-lib", "@pdf-lib/fontkit"],
   poweredByHeader: false,
   async headers() {
