@@ -1,0 +1,20 @@
+/*
+ * Workspace look, scoped under .ws so the public site keeps its own style.
+ *
+ * Coordinators spend hours here working through queues and tables, so the
+ * interface is quiet on purpose: flat surfaces, 1px borders, square-ish
+ * controls, one weight step between headings and text, and colour reserved
+ * for what needs a decision (status, overdue, the primary action). Nothing
+ * here is decoration.
+ */
+.ws .card { box-shadow: none; border-radius: 10px; }
+.ws .btn { border-radius: 8px; font-weight: 600; letter-spacing: 0; }
+.ws .btn-secondary { color: var(--color-ink); border: 1px solid #9aa39f; }
+.ws .btn-secondary:hover:not(:disabled) { background: var(--color-surface-alt); }
+.ws .chip { border-radius: 8px; border-width: 1px; }
+.ws .input { border-radius: 8px; border-width: 1px; border-color: #9aa39f; }
+.ws .h-page { font-size: 1.5rem; line-height: 2rem; font-weight: 700; letter-spacing: -0.01em; }
+.ws .h-section { font-size: 1.0625rem; line-height: 1.5rem; font-weight: 700; letter-spacing: 0; }
+.ws .table-clean th { background: transparent; border-bottom: 1px solid var(--color-ink); }
+.ws .table-clean tbody tr:nth-child(even) td { background: transparent; }
+.ws .table-clean tbody tr:hover td { background: var(--color-surface-alt); }

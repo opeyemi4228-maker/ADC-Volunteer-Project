@@ -1,0 +1,21 @@
+# dependencies and builds
+node_modules
+.next
+out
+*.tsbuildinfo
+next-env.d.ts
+
+# runtime data: never commit the database, uploads or the encryption secret
+data/*
+!data/.gitkeep
+
+# environment
+.env
+.env*.local
+.env.production
+
+# OS / editor
+.DS_Store
+*.log
+.vscode
+.idea

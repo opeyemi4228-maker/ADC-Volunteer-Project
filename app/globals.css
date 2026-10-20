@@ -1,0 +1,242 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens (spec §3). Brand colours are sampled from the ADC logo:
+ * green #12A650, orange #F47321, black. White text on the logo green is only
+ * 3.2:1, so buttons and links use a deeper step of the same green (5.6:1) and
+ * the logo green is kept for large marks, icons and accents.
+ */
+@theme {
+  --font-sans: var(--font-montserrat), "Montserrat", var(--font-noto), "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --color-brand-50: #eaf7ef;
+  --color-brand-100: #cdeed9;
+  --color-brand-200: #9fdcb5;
+  --color-brand-300: #62c589;
+  --color-brand-400: #2fb163;
+  --color-brand-500: #12a650; /* logo green */
+  --color-brand-600: #0b8a41;
+  --color-brand-700: #0a7338; /* buttons, links: 5.6:1 on white */
+  --color-brand-800: #085a2c;
+  --color-brand-900: #063f20;
+  --color-brand-950: #032614;
+
+  --color-accent-50: #fef3eb;
+  --color-accent-100: #fde2cf;
+  --color-accent-300: #f9a56f;
+  --color-accent-500: #f47321; /* logo orange: decoration, never text on white */
+  --color-accent-700: #a94c0c; /* orange text on white: 5.1:1 */
+
+  --color-ink: #1a1a1a;
+  --color-ink-muted: #5b6168;
+  --color-line: #dfe3e1;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f3f5f4;
+  --color-paper: #f7f5ef; /* warm off-white for the public site */
+  --color-paper-deep: #efece3;
+
+  --color-success: #1e7b34;
+  --color-success-bg: #e7f4ea;
+  --color-warning: #8a5300;
+  --color-warning-bg: #fdf1dc;
+  --color-danger: #b3261e;
+  --color-danger-bg: #fbe9e8;
+  --color-info: #1f5a8a;
+  --color-info-bg: #e6f0f8;
+
+  /* Flat surfaces: 1px borders carry the structure, not shadows. */
+  --radius-card: 12px;
+  --shadow-card: none;
+  --shadow-lift: 0 8px 24px -12px rgb(16 24 20 / 0.18);
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--color-brand-200); color: var(--color-brand-950); }
+
+/* Visible focus for keyboard users everywhere (spec §13). */
+:focus-visible {
+  outline: 3px solid var(--color-accent-500);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer components {
+  .container-page {
+    width: 100%;
+    max-width: 76rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 640px) {
+    .container-page { padding-inline: 1.5rem; }
+  }
+
+  /* Type scale (spec §3.2): page 32/40, section 20/28, body 16/24. */
+  .h-page { font-size: 2rem; line-height: 2.5rem; font-weight: 700; letter-spacing: -0.02em; text-wrap: balance; }
+  .h-section { font-size: 1.25rem; line-height: 1.75rem; font-weight: 700; letter-spacing: -0.01em; }
+  .lead { font-size: 1.125rem; line-height: 1.75rem; color: var(--color-ink-muted); }
+  .prose-width { max-width: 65ch; }
+  .t-label { font-size: 0.875rem; line-height: 1.25rem; font-weight: 600; }
+  .t-help { font-size: 0.8125rem; line-height: 1.125rem; color: var(--color-ink-muted); }
+
+  .card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .input {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    padding: 0.625rem 0.875rem;
+    font-size: 16px; /* never below 16px: stops phone browsers zooming in */
+    background: #fff;
+    border: 1.5px solid #b9c1bd;
+    border-radius: 10px;
+    color: var(--color-ink);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .input::placeholder { color: #8a9290; }
+  .input:hover { border-color: #8f9995; }
+  .input:focus { outline: none; border-color: var(--color-brand-700); box-shadow: 0 0 0 3px rgb(18 166 80 / 0.25); }
+  .input[aria-invalid="true"] { border-color: var(--color-danger); }
+  .input:disabled { background: var(--color-surface-alt); color: var(--color-ink-muted); }
+  select.input {
+    appearance: none;
+    padding-right: 2.5rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%235B6168' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+  }
+  textarea.input { min-height: 7rem; resize: vertical; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 48px;
+    padding: 0.625rem 1.375rem;
+    border-radius: 999px; /* pill, as on labour.org.uk; the workspace squares it off in workspace.css */
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.25rem;
+    text-align: center;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.05s;
+    cursor: pointer;
+    user-select: none;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled, .btn[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; transform: none; }
+  .btn-primary { background: var(--color-brand-700); color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: var(--color-brand-800); }
+  .btn-secondary { background: #fff; color: var(--color-brand-800); border: 1.5px solid var(--color-brand-700); }
+  .btn-secondary:hover:not(:disabled) { background: var(--color-brand-50); }
+  .btn-ghost { background: transparent; color: var(--color-brand-800); }
+  .btn-ghost:hover:not(:disabled) { background: var(--color-brand-50); }
+  .btn-danger { background: var(--color-danger); color: #fff; }
+  .btn-danger:hover:not(:disabled) { background: #8f1e18; }
+  .btn-accent { background: var(--color-accent-500); color: #1a1a1a; }
+  .btn-accent:hover:not(:disabled) { background: #e0661a; }
+  .btn-sm { min-height: 40px; padding: 0.375rem 1rem; font-size: 0.9375rem; }
+  .btn-lg { min-height: 52px; padding: 0.75rem 1.5rem; font-size: 1.0625rem; }
+
+  .link { color: var(--color-brand-700); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
+  .link:hover { color: var(--color-brand-900); }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 44px;
+    padding: 0.5rem 0.875rem;
+    border: 1.5px solid #b9c1bd;
+    border-radius: 999px;
+    background: #fff;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .chip:hover { border-color: var(--color-brand-600); }
+  .chip[aria-pressed="true"], .chip[aria-checked="true"] {
+    background: var(--color-brand-50);
+    border-color: var(--color-brand-700);
+    color: var(--color-brand-900);
+  }
+
+  .table-clean { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.9375rem; }
+  .table-clean th { text-align: left; font-size: 0.8125rem; font-weight: 600; color: var(--color-ink-muted); padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--color-line); background: var(--color-surface-alt); white-space: nowrap; }
+  .table-clean td { padding: 0.75rem; border-bottom: 1px solid var(--color-line); vertical-align: top; }
+  .table-clean tbody tr:nth-child(even) td { background: #fafbfa; }
+  .table-clean tbody tr:hover td { background: var(--color-brand-50); }
+  .num { font-variant-numeric: tabular-nums; }
+
+  .skip-link {
+    position: absolute; left: -999px; top: 0.5rem; z-index: 100;
+    background: #fff; color: var(--color-brand-800); padding: 0.75rem 1rem; border-radius: 8px; font-weight: 600;
+  }
+  .skip-link:focus { left: 0.5rem; }
+
+  .hero-pattern { background-color: var(--color-brand-900); }
+}
+
+.sr-only-focusable:not(:focus) {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+@keyframes fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.animate-fade-up { animation: fade-up 0.35s ease-out both; }
+@keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+.animate-pulse-dot { animation: pulse-dot 1.6s ease-in-out infinite; }
+
+/* ── Public-site motion ───────────────────────────────────────────────────
+ * Sections ease in as they scroll into view. Pure CSS (scroll-driven
+ * animations), so no JS and no layout shift; browsers without support, and
+ * anyone who prefers reduced motion, simply see the content. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+  }
+}
+@keyframes reveal { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+
+/* Map: states fade in north to south; recent-activity rings pulse. */
+@media (prefers-reduced-motion: no-preference) {
+  .map-state { animation: map-in 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  .map-pulse { animation: map-pulse 2.8s cubic-bezier(0.2, 0.7, 0.2, 1) infinite; transform-box: fill-box; transform-origin: center; }
+  .live-dot { animation: pulse-dot 1.6s ease-in-out infinite; }
+}
+@keyframes map-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes map-pulse { 0% { transform: scale(0.4); opacity: 0.9; } 80%, 100% { transform: scale(2.6); opacity: 0; } }

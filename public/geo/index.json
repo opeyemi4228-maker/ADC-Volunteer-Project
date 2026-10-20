@@ -1,0 +1,310 @@
+{
+  "source": "INEC delimitation service, scraped 2025-09-27 (github.com/JayCodist/inec-polling-units-scraper)",
+  "generated": "2026-08-03T17:27:15.650Z",
+  "totals": {
+    "states": 37,
+    "lgas": 774,
+    "wards": 8809,
+    "pollingUnits": 176623,
+    "existing": 119886,
+    "added2021": 56737
+  },
+  "states": [
+    {
+      "name": "Abia",
+      "code": "ABI",
+      "slug": "abia",
+      "lgas": 17,
+      "wards": 184,
+      "pollingUnits": 4026
+    },
+    {
+      "name": "Adamawa",
+      "code": "ADA",
+      "slug": "adamawa",
+      "lgas": 21,
+      "wards": 226,
+      "pollingUnits": 4101
+    },
+    {
+      "name": "Akwa Ibom",
+      "code": "AKW",
+      "slug": "akwa-ibom",
+      "lgas": 31,
+      "wards": 329,
+      "pollingUnits": 4352
+    },
+    {
+      "name": "Anambra",
+      "code": "ANA",
+      "slug": "anambra",
+      "lgas": 21,
+      "wards": 326,
+      "pollingUnits": 5719
+    },
+    {
+      "name": "Bauchi",
+      "code": "BAU",
+      "slug": "bauchi",
+      "lgas": 20,
+      "wards": 212,
+      "pollingUnits": 5412
+    },
+    {
+      "name": "Bayelsa",
+      "code": "BAY",
+      "slug": "bayelsa",
+      "lgas": 8,
+      "wards": 105,
+      "pollingUnits": 2244
+    },
+    {
+      "name": "Benue",
+      "code": "BEN",
+      "slug": "benue",
+      "lgas": 23,
+      "wards": 276,
+      "pollingUnits": 5069
+    },
+    {
+      "name": "Borno",
+      "code": "BOR",
+      "slug": "borno",
+      "lgas": 27,
+      "wards": 312,
+      "pollingUnits": 5071
+    },
+    {
+      "name": "Cross River",
+      "code": "CRO",
+      "slug": "cross-river",
+      "lgas": 18,
+      "wards": 193,
+      "pollingUnits": 3268
+    },
+    {
+      "name": "Delta",
+      "code": "DEL",
+      "slug": "delta",
+      "lgas": 25,
+      "wards": 270,
+      "pollingUnits": 5862
+    },
+    {
+      "name": "Ebonyi",
+      "code": "EBO",
+      "slug": "ebonyi",
+      "lgas": 13,
+      "wards": 171,
+      "pollingUnits": 2940
+    },
+    {
+      "name": "Edo",
+      "code": "EDO",
+      "slug": "edo",
+      "lgas": 18,
+      "wards": 192,
+      "pollingUnits": 4519
+    },
+    {
+      "name": "Ekiti",
+      "code": "EKI",
+      "slug": "ekiti",
+      "lgas": 16,
+      "wards": 177,
+      "pollingUnits": 2444
+    },
+    {
+      "name": "Enugu",
+      "code": "ENU",
+      "slug": "enugu",
+      "lgas": 17,
+      "wards": 260,
+      "pollingUnits": 4136
+    },
+    {
+      "name": "Federal Capital Territory",
+      "code": "FCT",
+      "slug": "abuja",
+      "lgas": 6,
+      "wards": 62,
+      "pollingUnits": 2817
+    },
+    {
+      "name": "Gombe",
+      "code": "GOM",
+      "slug": "gombe",
+      "lgas": 11,
+      "wards": 114,
+      "pollingUnits": 2984
+    },
+    {
+      "name": "Imo",
+      "code": "IMO",
+      "slug": "imo",
+      "lgas": 27,
+      "wards": 305,
+      "pollingUnits": 4757
+    },
+    {
+      "name": "Jigawa",
+      "code": "JIG",
+      "slug": "jigawa",
+      "lgas": 27,
+      "wards": 287,
+      "pollingUnits": 4509
+    },
+    {
+      "name": "Kaduna",
+      "code": "KAD",
+      "slug": "kaduna",
+      "lgas": 23,
+      "wards": 255,
+      "pollingUnits": 7984
+    },
+    {
+      "name": "Kano",
+      "code": "KAN",
+      "slug": "kano",
+      "lgas": 44,
+      "wards": 484,
+      "pollingUnits": 11212
+    },
+    {
+      "name": "Katsina",
+      "code": "KAT",
+      "slug": "katsina",
+      "lgas": 34,
+      "wards": 361,
+      "pollingUnits": 6650
+    },
+    {
+      "name": "Kebbi",
+      "code": "KEB",
+      "slug": "kebbi",
+      "lgas": 21,
+      "wards": 225,
+      "pollingUnits": 3741
+    },
+    {
+      "name": "Kogi",
+      "code": "KOG",
+      "slug": "kogi",
+      "lgas": 21,
+      "wards": 239,
+      "pollingUnits": 3507
+    },
+    {
+      "name": "Kwara",
+      "code": "KWA",
+      "slug": "kwara",
+      "lgas": 16,
+      "wards": 193,
+      "pollingUnits": 2886
+    },
+    {
+      "name": "Lagos",
+      "code": "LAG",
+      "slug": "lagos",
+      "lgas": 20,
+      "wards": 245,
+      "pollingUnits": 13322
+    },
+    {
+      "name": "Nasarawa",
+      "code": "NAS",
+      "slug": "nasarawa",
+      "lgas": 13,
+      "wards": 147,
+      "pollingUnits": 3252
+    },
+    {
+      "name": "Niger",
+      "code": "NIG",
+      "slug": "niger",
+      "lgas": 25,
+      "wards": 274,
+      "pollingUnits": 4946
+    },
+    {
+      "name": "Ogun",
+      "code": "OGU",
+      "slug": "ogun",
+      "lgas": 20,
+      "wards": 236,
+      "pollingUnits": 5040
+    },
+    {
+      "name": "Ondo",
+      "code": "OND",
+      "slug": "ondo",
+      "lgas": 18,
+      "wards": 203,
+      "pollingUnits": 3930
+    },
+    {
+      "name": "Osun",
+      "code": "OSU",
+      "slug": "osun",
+      "lgas": 30,
+      "wards": 332,
+      "pollingUnits": 3763
+    },
+    {
+      "name": "Oyo",
+      "code": "OYO",
+      "slug": "oyo",
+      "lgas": 33,
+      "wards": 351,
+      "pollingUnits": 6389
+    },
+    {
+      "name": "Plateau",
+      "code": "PLA",
+      "slug": "plateau",
+      "lgas": 17,
+      "wards": 207,
+      "pollingUnits": 4987
+    },
+    {
+      "name": "Rivers",
+      "code": "RIV",
+      "slug": "rivers",
+      "lgas": 23,
+      "wards": 319,
+      "pollingUnits": 6864
+    },
+    {
+      "name": "Sokoto",
+      "code": "SOK",
+      "slug": "sokoto",
+      "lgas": 23,
+      "wards": 244,
+      "pollingUnits": 3985
+    },
+    {
+      "name": "Taraba",
+      "code": "TAR",
+      "slug": "taraba",
+      "lgas": 16,
+      "wards": 168,
+      "pollingUnits": 3597
+    },
+    {
+      "name": "Yobe",
+      "code": "YOB",
+      "slug": "yobe",
+      "lgas": 17,
+      "wards": 178,
+      "pollingUnits": 2809
+    },
+    {
+      "name": "Zamfara",
+      "code": "ZAM",
+      "slug": "zamfara",
+      "lgas": 14,
+      "wards": 147,
+      "pollingUnits": 3529
+    }
+  ]
+}
