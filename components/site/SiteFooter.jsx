@@ -51,10 +51,10 @@ export default async function SiteFooter() {
             © {new Date().getFullYear()} {t("African Democratic Congress")}. {t("Your data is protected under the Nigeria Data Protection Act 2023.")}
           </p>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-            <Link href="/signin" className="hover:text-white">{t("Coordinator sign in")}</Link>
+            <Link href="/signin" className="inline-flex min-h-10 items-center hover:text-white">{t("Coordinator sign in")}</Link>
             <p>
               {t("Built by")}{" "}
-              <a href="https://www.bitlayerx.com" target="_blank" rel="noopener" className="font-semibold text-white/80 underline decoration-white/30 underline-offset-4 hover:text-white hover:decoration-white">
+              <a href="https://www.bitlayerx.com" target="_blank" rel="noopener" className="inline-flex min-h-10 items-center font-semibold text-white/80 underline decoration-white/30 underline-offset-4 hover:text-white hover:decoration-white">
                 BitLayerX Technologies
               </a>
             </p>
@@ -69,7 +69,7 @@ function FooterList({ title, children }) {
   return (
     <div>
       <p className="text-[14px] font-semibold text-white">{title}</p>
-      <ul className="mt-4 space-y-3">{children}</ul>
+      <ul className="mt-3 space-y-0.5">{children}</ul>
     </div>
   );
 }
@@ -77,7 +77,7 @@ function FooterList({ title, children }) {
 function FooterLink({ href, children }) {
   return (
     <li>
-      <Link href={href} className="text-[15px] transition-colors hover:text-white">
+      <Link href={href} className="inline-flex min-h-10 items-center text-[15px] transition-colors hover:text-white">
         {children}
       </Link>
     </li>

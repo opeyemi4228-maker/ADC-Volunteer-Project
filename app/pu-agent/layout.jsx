@@ -10,7 +10,7 @@ export default function AgentLayout({ children }) {
     <div className="min-h-dvh bg-white">
       <header className="border-b border-line">
         <div className="mx-auto flex h-14 max-w-xl items-center gap-2 px-4">
-          <Link href="/" className="flex items-center gap-2"><Logo size={28} /><span className="font-bold">Polling unit agent</span></Link>
+          <Link href="/" className="flex min-h-11 items-center gap-2"><Logo size={28} /><span className="font-bold">Polling unit agent</span></Link>
         </div>
       </header>
       <main className="mx-auto max-w-xl px-4 py-6">{children}</main>

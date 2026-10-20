@@ -65,7 +65,7 @@ export default async function HomePage() {
                   {t("Join as a volunteer")}
                   <ArrowRight aria-hidden className="size-5" />
                 </Link>
-                <Link href="/register" className="text-[16px] font-semibold text-white underline decoration-white/35 underline-offset-[6px] hover:decoration-white">
+                <Link href="/register" className="inline-flex min-h-11 items-center text-[16px] font-semibold text-white underline decoration-white/35 underline-offset-[6px] hover:decoration-white">
                   {t("Register a support group")}
                 </Link>
               </div>
@@ -196,7 +196,7 @@ export default async function HomePage() {
                 {t("Register a group")}
                 <ArrowRight aria-hidden className="size-5" />
               </Link>
-              <Link href="/login" className="text-[16px] font-semibold text-brand-700 underline decoration-brand-700/30 underline-offset-[6px] hover:decoration-brand-700">
+              <Link href="/login" className="inline-flex min-h-11 items-center text-[16px] font-semibold text-brand-700 underline decoration-brand-700/30 underline-offset-[6px] hover:decoration-brand-700">
                 {t("Group login")}
               </Link>
             </div>
@@ -220,7 +220,7 @@ export default async function HomePage() {
         <div className="grid gap-10 lg:grid-cols-[1fr_1.4fr] lg:gap-16">
           <div>
             <h2 className="text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] sm:text-[2.75rem]">{t("Questions")}</h2>
-            <Link href="/help" className="mt-5 inline-flex items-center gap-1.5 text-[15px] font-semibold text-brand-700 hover:text-brand-900">
+            <Link href="/help" className="mt-3 inline-flex min-h-11 items-center gap-1.5 text-[15px] font-semibold text-brand-700 hover:text-brand-900">
               {t("All help topics")}
               <ArrowUpRight aria-hidden className="size-4" />
             </Link>

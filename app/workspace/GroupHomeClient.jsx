@@ -75,7 +75,7 @@ export function MembershipUpdate({ groupId, hasList }) {
           />
         </label>
         {hasList && <a href={`/api/v1/groups/${groupId}/members-file`} className="btn btn-ghost btn-sm"><Download aria-hidden className="size-4" /> Download current list</a>}
-        <a href="/api/v1/groups/member-template.csv" className="link text-[14px]">CSV template</a>
+        <a href="/api/v1/groups/member-template.csv" className="link inline-flex min-h-10 items-center text-[14px]">CSV template</a>
       </div>
       {u.msg && <p role="status" className="text-[14px] font-semibold text-success">{u.msg}</p>}
       {u.error && <p role="alert" className="text-[14px] font-medium text-danger">{u.error}</p>}

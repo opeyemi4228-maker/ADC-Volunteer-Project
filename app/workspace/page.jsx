@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import GroupHome from "./GroupHome";
 
-import { getViewer } from "@/lib/auth";
+import { requireViewer } from "@/lib/guard";
 import { getT } from "@/lib/i18n/server";
 import { dashboard, coverage } from "@/lib/workspace-data";
 import { resolveArea, breadcrumb } from "@/lib/workspace-area";
@@ -21,7 +21,7 @@ export const metadata = { title: "Overview" };
 const CHANNELS = { web: "Website", whatsapp: "WhatsApp", ussd: "USSD", field_agent: "Field agents" };
 
 export default async function Overview({ searchParams }) {
-  const viewer = await getViewer();
+  const viewer = await requireViewer();
   const t = await getT();
   const sp = await searchParams;
   if (viewer.powers.includes("field_agent") && viewer.roles.length === 1) redirect("/workspace/agent");
@@ -115,7 +115,7 @@ export default async function Overview({ searchParams }) {
           <Card className="p-4 sm:p-5 lg:col-span-2">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="h-section">{t("Volunteers by {level}", { level: map.level === "state" ? t("state") : t("LGA") })}</h2>
-              <Link href={`/workspace/map${area.code !== area.home.code ? `?area=${area.code}` : ""}`} className="text-[14px] font-semibold text-brand-700 hover:underline">{t("Open full map")}</Link>
+              <Link href={`/workspace/map${area.code !== area.home.code ? `?area=${area.code}` : ""}`} className="inline-flex min-h-10 items-center text-[14px] font-semibold text-brand-700 hover:underline">{t("Open full map")}</Link>
             </div>
             <p className="t-help mt-0.5">{t("Select an area to drill down.")}</p>
             <div className="mt-3">

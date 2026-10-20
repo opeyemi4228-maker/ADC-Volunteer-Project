@@ -150,7 +150,7 @@ export default async function GroupHome({ viewer, groupId }) {
               })}
             </ol>
           )}
-          <Link href={`/workspace/groups/${g.id}?tab=gallery`} className="inline-flex items-center gap-1 text-[15px] font-semibold text-brand-700">See all photos <ArrowRight aria-hidden className="size-4" /></Link>
+          <Link href={`/workspace/groups/${g.id}?tab=gallery`} className="inline-flex min-h-11 items-center gap-1 text-[15px] font-semibold text-brand-700">See all photos <ArrowRight aria-hidden className="size-4" /></Link>
         </section>
       </div>
 
@@ -164,7 +164,7 @@ export default async function GroupHome({ viewer, groupId }) {
             <div><dt className="text-[13px] text-ink-muted">Verified</dt><dd className="text-2xl font-bold num">{fmt(members.verified ?? 0)}</dd></div>
             <div><dt className="text-[13px] text-ink-muted">Waiting for you</dt><dd className={cx("text-2xl font-bold num", members.waiting ? "text-warning" : "")}>{fmt(members.waiting ?? 0)}</dd></div>
           </dl>
-          {members.waiting > 0 && <Link href="/workspace/volunteers" className="mt-3 inline-flex items-center gap-1 text-[15px] font-semibold text-brand-700">Approve members <ArrowRight aria-hidden className="size-4" /></Link>}
+          {members.waiting > 0 && <Link href="/workspace/volunteers" className="mt-2 inline-flex min-h-11 items-center gap-1 text-[15px] font-semibold text-brand-700">Approve members <ArrowRight aria-hidden className="size-4" /></Link>}
         </Card>
 
         <Card className="p-5 sm:p-6">

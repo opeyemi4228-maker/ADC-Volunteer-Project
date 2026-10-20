@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { getViewer } from "@/lib/auth";
+import { requireViewer } from "@/lib/guard";
 import { all, one } from "@/lib/db";
 import { Card, EmptyState, StatusBadge, dateLabel } from "@/components/ui";
 import { PageHeader } from "@/components/workspace/ui";
@@ -9,7 +9,7 @@ import { ApiButton } from "@/components/workspace/actions";
 export const metadata = { title: "Data requests" };
 
 export default async function PrivacyPage() {
-  const viewer = await getViewer();
+  const viewer = await requireViewer();
   if (!viewer.powers.includes("data_requests")) redirect("/workspace");
   const list = all("SELECT * FROM data_requests ORDER BY status = 'open' DESC, created_at ASC LIMIT 100");
   return (

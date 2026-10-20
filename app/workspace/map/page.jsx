@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { getViewer } from "@/lib/auth";
+import { requireViewer } from "@/lib/guard";
 import { all } from "@/lib/db";
 import { scopeSql } from "@/lib/scope";
 import { coverage } from "@/lib/workspace-data";
@@ -21,7 +21,7 @@ const METRICS = [
 ];
 
 export default async function MapPage({ searchParams }) {
-  const viewer = await getViewer();
+  const viewer = await requireViewer();
   if (!viewer.powers.includes("verify")) redirect("/workspace");
   const sp = await searchParams;
   const area = resolveArea(viewer, sp.area);

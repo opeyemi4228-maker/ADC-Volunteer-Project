@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { getViewer } from "@/lib/auth";
+import { requireViewer } from "@/lib/guard";
 import { all } from "@/lib/db";
 import { open } from "@/lib/crypto";
 import { scopeSql } from "@/lib/scope";
@@ -28,7 +28,7 @@ function areaOptions(viewer) {
 }
 
 export default async function MessagesPage() {
-  const viewer = await getViewer();
+  const viewer = await requireViewer();
   if (!viewer.powers.includes("message")) redirect("/workspace");
   const s = scopeSql(viewer, "group", "g");
   const groups = all(`SELECT g.id, g.name FROM support_groups g WHERE g.status = 'verified' AND ${s.sql} ORDER BY g.name LIMIT 500`, s.params);

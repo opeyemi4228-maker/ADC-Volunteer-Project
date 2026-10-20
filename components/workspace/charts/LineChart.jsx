@@ -53,7 +53,7 @@ export default function LineChart({ data, height = 220, label = "Volunteers regi
   return (
     <div>
       <div className="mb-2 flex justify-end">
-        <button type="button" className="text-[13px] font-semibold text-brand-700 underline underline-offset-2" onClick={() => setTable((v) => !v)}>
+        <button type="button" className="inline-flex min-h-10 items-center text-[13px] font-semibold text-brand-700 underline underline-offset-2" onClick={() => setTable((v) => !v)}>
           {table ? t("Show as chart") : t("Show as table")}
         </button>
       </div>

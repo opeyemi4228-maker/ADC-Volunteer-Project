@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ListTodo } from "lucide-react";
 
-import { getViewer } from "@/lib/auth";
+import { requireViewer } from "@/lib/guard";
 import { all } from "@/lib/db";
 import { scopeSql } from "@/lib/scope";
 import { areaName, childAreas, statesInZone, stateList } from "@/lib/geo";
@@ -27,7 +27,7 @@ function areaOptions(viewer) {
 }
 
 export default async function TasksPage() {
-  const viewer = await getViewer();
+  const viewer = await requireViewer();
   const tasks = visibleTasks(viewer);
   const canAssign = viewer.powers.includes("assign_tasks");
   const s = scopeSql(viewer, "group", "g");

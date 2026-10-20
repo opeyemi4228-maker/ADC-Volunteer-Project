@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CalendarCheck, AlertTriangle, Plus, MapPin } from "lucide-react";
 
-import { getViewer } from "@/lib/auth";
+import { requireViewer } from "@/lib/guard";
 import { all } from "@/lib/db";
 import { scopeSql } from "@/lib/scope";
 import { placeLabel } from "@/lib/geo";
@@ -19,7 +19,7 @@ const RANGES = [
 ];
 
 export default async function ActivitiesPage({ searchParams }) {
-  const viewer = await getViewer();
+  const viewer = await requireViewer();
   const sp = await searchParams;
   const days = Number(sp.days) || 30;
   const s = scopeSql(viewer, "activity", "a");

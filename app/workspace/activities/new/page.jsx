@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { getViewer } from "@/lib/auth";
+import { requireViewer } from "@/lib/guard";
 import { all } from "@/lib/db";
 import { scopeSql } from "@/lib/scope";
 import { PageHeader } from "@/components/workspace/ui";
@@ -9,7 +9,7 @@ import ActivityForm from "./ActivityForm";
 export const metadata = { title: "Report an activity" };
 
 export default async function NewActivity({ searchParams }) {
-  const viewer = await getViewer();
+  const viewer = await requireViewer();
   if (!viewer.powers.includes("log_activity")) redirect("/workspace/activities");
   const sp = await searchParams;
   const s = scopeSql(viewer, "group", "g");

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { getViewer } from "@/lib/auth";
+import { requireViewer } from "@/lib/guard";
 import { getSetting } from "@/lib/db";
 import { resolveArea } from "@/lib/workspace-area";
 import { lgaOf, stateTree, areaName, stateList } from "@/lib/geo";
@@ -16,7 +16,7 @@ import RosterRow from "./RosterRow";
 export const metadata = { title: "Election day" };
 
 export default async function ElectionPage({ searchParams }) {
-  const viewer = await getViewer();
+  const viewer = await requireViewer();
   if (!viewer.powers.includes("election")) redirect("/workspace");
   const sp = await searchParams;
   const tab = ["roster", "situation", "incidents"].includes(sp.tab) ? sp.tab : "roster";
@@ -103,7 +103,7 @@ function Roster({ viewer, ward }) {
     <>
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="h-section">{areaName(ward)} ward <span className="font-normal text-ink-muted">· {areaName(ward.slice(0, 7))}</span></h2>
-        <Link className="link text-[14px]" href="/workspace/election?tab=roster">Choose another ward</Link>
+        <Link className="link inline-flex min-h-10 items-center text-[14px]" href="/workspace/election?tab=roster">Choose another ward</Link>
       </div>
       <div className="mb-6 grid grid-cols-2 gap-6 lg:grid-cols-4">
         <Stat label="Polling units" value={fmt(rows.length)} />

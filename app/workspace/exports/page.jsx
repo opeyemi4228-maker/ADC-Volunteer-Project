@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { getViewer } from "@/lib/auth";
+import { requireViewer } from "@/lib/guard";
 import { all, nowIso } from "@/lib/db";
 import { areaName, childAreas, stateList, statesInZone } from "@/lib/geo";
 import { Card, StatusBadge, dateLabel } from "@/components/ui";
@@ -24,7 +24,7 @@ function areas(viewer) {
 }
 
 export default async function ExportsPage() {
-  const viewer = await getViewer();
+  const viewer = await requireViewer();
   if (!viewer.powers.includes("request_export")) redirect("/workspace");
   const approver = viewer.powers.includes("approve_export");
   const list = all(`SELECT * FROM exports WHERE requested_by = :u OR :admin = 1 ORDER BY created_at DESC LIMIT 50`, { u: viewer.id, admin: approver ? 1 : 0 });

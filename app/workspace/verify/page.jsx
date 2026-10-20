@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AlertTriangle, Phone, Images, Clock, ShieldCheck } from "lucide-react";
 
-import { getViewer } from "@/lib/auth";
+import { requireViewer } from "@/lib/guard";
 import { all, scalar } from "@/lib/db";
 import { open } from "@/lib/crypto";
 import { groupRows, volunteerRows } from "@/lib/workspace-data";
@@ -51,7 +51,7 @@ function Flags({ flags, kind, id }) {
 }
 
 export default async function VerifyPage({ searchParams }) {
-  const viewer = await getViewer();
+  const viewer = await requireViewer();
   if (!viewer.powers.includes("verify")) redirect("/workspace");
   const sp = await searchParams;
   const tab = sp.tab === "groups" ? "groups" : "volunteers";
@@ -107,7 +107,7 @@ export default async function VerifyPage({ searchParams }) {
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <Link href={`/workspace/groups/${r.id}`} className="text-[17px] font-bold hover:underline">{r.name}</Link>
+                          <Link href={`/workspace/groups/${r.id}`} className="inline-flex min-h-10 items-center break-words text-[17px] font-bold hover:underline">{r.name}</Link>
                           <StatusBadge status={r.status} />
                         </div>
                         <p className="mt-0.5 text-[14px] text-ink-muted">
@@ -123,7 +123,7 @@ export default async function VerifyPage({ searchParams }) {
                         return (
                           <div key={l.position + l.first_name} className="flex items-center justify-between gap-2 rounded-lg bg-surface-alt px-3 py-2 text-[14px]">
                             <span><span className="font-semibold">{l.first_name} {l.surname}</span> <span className="text-ink-muted">· {l.position.replace("_", " ")}</span></span>
-                            {phone && <a href={`tel:${phone}`} className="inline-flex items-center gap-1 font-semibold text-brand-700"><Phone aria-hidden className="size-4" /> {formatPhone(phone)}</a>}
+                            {phone && <a href={`tel:${phone}`} className="inline-flex min-h-10 items-center gap-1 font-semibold text-brand-700"><Phone aria-hidden className="size-4" /> {formatPhone(phone)}</a>}
                           </div>
                         );
                       })}
@@ -156,7 +156,7 @@ export default async function VerifyPage({ searchParams }) {
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <Link href={`/workspace/volunteers/${r.id}`} className="text-[17px] font-bold hover:underline">{r.first_name} {r.middle_name ? `${r.middle_name} ` : ""}{r.surname}</Link>
+                        <Link href={`/workspace/volunteers/${r.id}`} className="inline-flex min-h-10 items-center break-words text-[17px] font-bold hover:underline">{r.first_name} {r.middle_name ? `${r.middle_name} ` : ""}{r.surname}</Link>
                         <StatusBadge status={r.status} />
                         {!r.phone_verified_at && <span className="rounded-full bg-warning-bg px-2 py-0.5 text-[12px] font-semibold text-warning">Phone not confirmed</span>}
                       </div>
@@ -166,13 +166,13 @@ export default async function VerifyPage({ searchParams }) {
                     </div>
                     <Waiting since={r.created_at} />
                   </div>
-                  <dl className="mt-3 grid gap-x-6 gap-y-2 text-[14px] sm:grid-cols-2 lg:grid-cols-4">
+                  <dl className="mt-3 grid gap-x-6 gap-y-2 text-[14px] sm:grid-cols-2 lg:grid-cols-4 [&>div]:min-w-0 [&_dd]:break-words">
                     <div><dt className="text-ink-muted">Votes in</dt><dd className="font-medium">{r.place}</dd></div>
                     <div><dt className="text-ink-muted">Polling unit</dt><dd className="font-medium">{r.vote_pu_code ? areaName(r.vote_pu_code) : <span className="text-warning">Not given</span>}</dd></div>
                     <div><dt className="text-ink-muted">PVC</dt><dd className="font-medium">{labelOf(PVC_STATUS, r.pvc_status)}</dd></div>
                     <div><dt className="text-ink-muted">Group</dt><dd className="font-medium">{r.group_name ?? "Not in a group"}</dd></div>
                     <div className="sm:col-span-2 lg:col-span-3"><dt className="text-ink-muted">Can help as</dt><dd className="font-medium">{r.roles.map((x) => labelOf(VOLUNTEER_ROLES, x)).join(", ")}</dd></div>
-                    <div><dt className="text-ink-muted">Phone</dt><dd>{phone && <a href={`tel:${phone}`} className="inline-flex items-center gap-1 font-semibold text-brand-700"><Phone aria-hidden className="size-4" />{formatPhone(phone)}</a>}</dd></div>
+                    <div><dt className="text-ink-muted">Phone</dt><dd>{phone && <a href={`tel:${phone}`} className="inline-flex min-h-10 items-center gap-1 font-semibold text-brand-700"><Phone aria-hidden className="size-4" />{formatPhone(phone)}</a>}</dd></div>
                   </dl>
                   <div className="mt-3 space-y-3">
                     <Flags flags={f} kind="volunteer" id={r.id} />

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { getViewer } from "@/lib/auth";
+import { requireViewer } from "@/lib/guard";
 import { all, scalar, getSetting } from "@/lib/db";
 import { open } from "@/lib/crypto";
 import { areaName } from "@/lib/geo";
@@ -22,7 +22,7 @@ function roleArea(r) {
 }
 
 export default async function SettingsPage({ searchParams }) {
-  const viewer = await getViewer();
+  const viewer = await requireViewer();
   if (!viewer.powers.includes("audit")) redirect("/workspace");
   const sp = await searchParams;
   const admin = viewer.powers.includes("manage_users");

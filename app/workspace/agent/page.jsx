@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { getViewer } from "@/lib/auth";
+import { requireViewer } from "@/lib/guard";
 import { all } from "@/lib/db";
 import { open } from "@/lib/crypto";
 import { maskPhone } from "@/lib/validate";
@@ -11,7 +11,7 @@ import AgentForm from "./AgentForm";
 export const metadata = { title: "Field registration" };
 
 export default async function AgentPage() {
-  const viewer = await getViewer();
+  const viewer = await requireViewer();
   if (!viewer.powers.includes("field_agent")) redirect("/workspace");
   const home = viewer.roles.find((r) => r.role === "field_agent");
   const today = all(

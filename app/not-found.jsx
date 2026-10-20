@@ -14,8 +14,8 @@ export default async function NotFound() {
         <p className="lead prose-width mt-3">{t("The link may be old or mistyped. If you typed the address, check it.")}</p>
         <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
           <Link href="/" className="btn btn-primary">{t("Go to the home page")}</Link>
-          <Link href="/volunteer" className="link">{t("Join as a volunteer")}</Link>
-          <Link href="/help" className="link">{t("Get help")}</Link>
+          <Link href="/volunteer" className="link inline-flex min-h-11 items-center">{t("Join as a volunteer")}</Link>
+          <Link href="/help" className="link inline-flex min-h-11 items-center">{t("Get help")}</Link>
         </div>
       </div>
     </SiteLayout>

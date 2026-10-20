@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Phone, Mail, Globe, Link2, AlertTriangle, CalendarCheck, Images, ListTodo, MapPin } from "lucide-react";
 
-import { getViewer, clientIp } from "@/lib/auth";
+import { clientIp } from "@/lib/auth";
+import { requireViewer } from "@/lib/guard";
 import { getGroup } from "@/lib/workspace-data";
 import { audit } from "@/lib/audit";
 import { areaName } from "@/lib/geo";
@@ -23,7 +24,7 @@ export async function generateMetadata() {
 }
 
 export default async function GroupProfile({ params, searchParams }) {
-  const viewer = await getViewer();
+  const viewer = await requireViewer();
   const { id } = await params;
   const sp = await searchParams;
   const g = getGroup(viewer, id);

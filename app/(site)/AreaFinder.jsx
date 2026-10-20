@@ -102,7 +102,7 @@ export default function AreaFinder() {
             {none ? t("Be the first") : t("Join them")}
             <ArrowRight aria-hidden className="size-4" />
           </Link>
-          <Link href="/register" className="text-[15px] font-semibold text-brand-700 underline decoration-brand-700/30 underline-offset-[5px] hover:decoration-brand-700">
+          <Link href="/register" className="inline-flex min-h-11 items-center text-[15px] font-semibold text-brand-700 underline decoration-brand-700/30 underline-offset-[5px] hover:decoration-brand-700">
             {t("Register a group")}
           </Link>
         </div>

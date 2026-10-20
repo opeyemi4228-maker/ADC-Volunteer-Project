@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle, Users } from "lucide-react";
 
-import { getViewer } from "@/lib/auth";
+import { requireViewer } from "@/lib/guard";
 import { groupRows } from "@/lib/workspace-data";
 import { GROUP_CATEGORIES, OPERATING_LEVELS, GROUP_SIZE, labelOf } from "@/lib/options";
 import { Card, EmptyState, StatusBadge, fmt, dateLabel } from "@/components/ui";
@@ -18,7 +18,7 @@ const STATUSES = [
 ];
 
 export default async function GroupsPage({ searchParams }) {
-  const viewer = await getViewer();
+  const viewer = await requireViewer();
   const sp = await searchParams;
   const list = groupRows(viewer, sp);
 

@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Phone, Mail, MessageCircle, AlertTriangle } from "lucide-react";
 
-import { getViewer, clientIp } from "@/lib/auth";
+import { clientIp } from "@/lib/auth";
+import { requireViewer } from "@/lib/guard";
 import { getVolunteer } from "@/lib/workspace-data";
 import { audit } from "@/lib/audit";
 import { ageOn } from "@/lib/validate";
@@ -17,7 +18,7 @@ export const metadata = { title: "Volunteer" };
 const CHANNEL = { web: "Website", whatsapp: "WhatsApp", ussd: "USSD", field_agent: "Field agent" };
 
 export default async function VolunteerProfile({ params }) {
-  const viewer = await getViewer();
+  const viewer = await requireViewer();
   const { id } = await params;
   const v = getVolunteer(viewer, id);
   if (!v) notFound();

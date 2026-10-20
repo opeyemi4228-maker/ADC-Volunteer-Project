@@ -1,6 +1,6 @@
 import { Images } from "lucide-react";
 
-import { getViewer } from "@/lib/auth";
+import { requireViewer } from "@/lib/guard";
 import { all, scalar } from "@/lib/db";
 import { scopeSql } from "@/lib/scope";
 import { placeLabel, stateList } from "@/lib/geo";
@@ -12,7 +12,7 @@ export const metadata = { title: "Media library" };
 const PAGE = 24;
 
 export default async function MediaPage({ searchParams }) {
-  const viewer = await getViewer();
+  const viewer = await requireViewer();
   const sp = await searchParams;
   const status = sp.status ?? (viewer.powers.includes("moderate_media") ? "pending" : "approved");
   const page = Math.max(1, Number(sp.page) || 1);

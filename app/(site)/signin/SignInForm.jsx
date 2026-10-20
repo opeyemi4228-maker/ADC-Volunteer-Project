@@ -77,8 +77,8 @@ export default function SignInForm({ demo }) {
               {t("Sign in")}
             </button>
             <div className="flex flex-wrap justify-between gap-2 text-[14px]">
-              <Link href="/reset" className="link">{t("Forgot your password?")}</Link>
-              <Link href="/volunteer" className="link">{t("Join as a volunteer")}</Link>
+              <Link href="/reset" className="link inline-flex min-h-11 items-center">{t("Forgot your password?")}</Link>
+              <Link href="/volunteer" className="link inline-flex min-h-11 items-center">{t("Join as a volunteer")}</Link>
             </div>
           </form>
         ) : (

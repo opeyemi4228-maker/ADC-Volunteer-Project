@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 
-import { getViewer } from "@/lib/auth";
+import { requireViewer } from "@/lib/guard";
 import { PageHeader } from "@/components/workspace/ui";
 import Simulator from "./Simulator";
 
 export const metadata = { title: "USSD simulator" };
 
 export default async function UssdPage() {
-  const viewer = await getViewer();
+  const viewer = await requireViewer();
   if (!viewer.powers.includes("settings")) redirect("/workspace");
   return (
     <>

@@ -27,7 +27,7 @@ export default function AgentApp() {
   const [loading, setLoading] = useState(true);
   const [online, setOnline] = useState(true);
 
-  const load = () => call("/api/v1/election/me").then((r) => { setMe(r.ok ? r : null); setLoading(false); });
+  const load = () => call("/api/v1/election/me").then((r) => { setMe(r.ok && r.signedIn !== false ? r : null); setLoading(false); });
   useEffect(() => {
     load();
     setOnline(navigator.onLine);

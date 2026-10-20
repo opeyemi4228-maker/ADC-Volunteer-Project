@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle, HandHeart } from "lucide-react";
 
-import { getViewer } from "@/lib/auth";
+import { requireViewer } from "@/lib/guard";
 import { volunteerRows } from "@/lib/workspace-data";
 import { VOLUNTEER_ROLES, PVC_STATUS, labelOf } from "@/lib/options";
 import { Card, EmptyState, StatusBadge, dateLabel } from "@/components/ui";
@@ -24,7 +24,7 @@ const CHANNELS = [
 ];
 
 export default async function VolunteersPage({ searchParams }) {
-  const viewer = await getViewer();
+  const viewer = await requireViewer();
   const sp = await searchParams;
   const list = volunteerRows(viewer, sp);
   const groupCoordinator = viewer.powers.includes("approve_members") && !viewer.powers.includes("verify");
