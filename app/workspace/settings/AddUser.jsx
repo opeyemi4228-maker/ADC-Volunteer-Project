@@ -36,7 +36,7 @@ export default function AddUser({ groups }) {
       <label className="flex flex-col gap-1"><span className="t-label">Phone number</span><input className="input" inputMode="tel" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} placeholder="0803 123 4567" /></label>
       <label className="flex flex-col gap-1"><span className="t-label">Role</span>
         <select className="input" value={f.role} onChange={(e) => setF({ ...f, role: e.target.value, area: "" })}>
-          {Object.entries(ROLE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          {Object.entries(ROLE_LABELS).filter(([v]) => !["group_coordinator", "volunteer"].includes(v)).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
       </label>
       {needsGeo && <LocationPicker form={form} base="loc" needWard={f.role === "ward_coordinator"} />}
@@ -45,9 +45,6 @@ export default function AddUser({ groups }) {
       )}
       {f.role === "directorate_head" && (
         <label className="flex flex-col gap-1"><span className="t-label">Directorate</span><select className="input" value={f.area} onChange={(e) => setF({ ...f, area: e.target.value })}><option value="">Choose</option>{DIRECTORATES.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}</select></label>
-      )}
-      {f.role === "group_coordinator" && (
-        <label className="flex flex-col gap-1"><span className="t-label">Group</span><select className="input" value={f.area} onChange={(e) => setF({ ...f, area: e.target.value })}><option value="">Choose</option>{groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}</select></label>
       )}
       {error && <p role="alert" className="text-[14px] text-danger">{error}</p>}
       <button className="btn btn-primary" disabled={busy}>Add role</button>

@@ -2,7 +2,7 @@
 export default function sitemap() {
   const site = process.env.SITE_URL ?? "http://localhost:3000";
   const now = new Date();
-  return ["", "/volunteer", "/register", "/groups", "/help", "/privacy"].map((p, i) => ({
+  return ["", "/volunteer", "/status", "/help", "/privacy"].map((p, i) => ({
     url: `${site}${p}`,
     lastModified: now,
     changeFrequency: "weekly",

@@ -2,7 +2,7 @@ import { getViewer, clientIp } from "@/lib/auth";
 import { getLang } from "@/lib/i18n/server";
 import { scalar } from "@/lib/db";
 import { normalizePhone } from "@/lib/validate";
-import { validateVolunteer, createVolunteer } from "@/lib/registration";
+import { validateVolunteer, createVolunteer, createVolunteerAccount } from "@/lib/registration";
 import { listVolunteers } from "@/lib/queries";
 import { send } from "@/lib/notify";
 import { audit } from "@/lib/audit";
@@ -10,7 +10,8 @@ import { ok, fail, body } from "@/lib/http";
 
 /**
  * POST /api/v1/volunteers: register a volunteer (Flow B, fast version).
- * No phone code: the number is typed in step 1 and must be unique. The ward
+ * No phone code: the number is typed in step 1 and must be unique. The
+ * password chosen on the last screen opens their volunteer dashboard. The ward
  * coordinator confirms it by calling before verifying, so the record starts
  * as "phone not confirmed".
  */
@@ -28,6 +29,8 @@ export async function POST(request) {
   const phone = normalizePhone(d.about.phone);
   const v = createVolunteer(d, { phone, channel: "web", phoneVerified: false });
   if (v.error) return fail(409, v.error, { duplicatePhone: true, errors: { "about.phone": v.error } });
+  // Their sign-in for the volunteer dashboard (ID card and certificate).
+  createVolunteerAccount(v.id, { name: `${v.firstName} ${String(d.about.surname ?? "").trim()}`.trim(), phone, email: d.about.email, password: d.account.password });
   audit({ name: "Registrant" }, "volunteer_registered", "volunteer", v.id, { publicId: v.publicId }, ip);
   await send({ to: phone, template: "volunteer_submitted", lang: await getLang(), vars: { name: v.firstName, id: v.publicId } });
   return ok(v);

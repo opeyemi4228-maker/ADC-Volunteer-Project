@@ -37,10 +37,10 @@ export default async function TasksPage() {
 
   return (
     <>
-      <PageHeader title="Tasks" description="Work assigned to groups and areas, with a target and progress reports." />
+      <PageHeader title="Tasks" description="Work assigned to areas, with a target and progress reports." />
       {canAssign && <NewTask areas={areaOptions(viewer)} groups={groups} />}
       {tasks.length === 0 ? (
-        <EmptyState icon={ListTodo} title="No tasks yet">{canAssign ? "Create a task above and assign it to the groups in an area." : "Tasks your coordinators assign will appear here."}</EmptyState>
+        <EmptyState icon={ListTodo} title="No tasks yet">{canAssign ? "Create a task above and assign it to an area." : "Tasks your coordinators assign will appear here."}</EmptyState>
       ) : (
         <div className="space-y-8">
           {[["Open", open], ["Completed", done]].map(([label, list]) => list.length > 0 && (
@@ -64,12 +64,6 @@ export default async function TasksPage() {
                             <div className="flex justify-between text-[14px] num"><span><strong>{fmt(t.achieved)}</strong> of {fmt(t.target_value)} {t.target_unit}</span><span>{pct}%</span></div>
                             <div className="mt-1 h-2 rounded-full bg-surface-alt" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Progress"><div className="h-2 rounded-full bg-brand-600" style={{ width: `${pct}%` }} /></div>
                           </div>
-                        )}
-                        {t.groups.length > 0 && (
-                          <p className="mt-3 text-[13px] text-ink-muted">
-                            Assigned to {t.groups.slice(0, 4).map((g, i) => <span key={g.id}>{i > 0 && ", "}<Link className="link" href={`/workspace/groups/${g.id}?tab=tasks`}>{g.name}</Link></span>)}
-                            {t.groups.length > 4 && ` and ${t.groups.length - 4} more`}
-                          </p>
                         )}
                         {t.status === "open" && (t.mine || canAssign) && <TaskReportForm taskId={t.id} unit={t.target_unit} />}
                       </Card>

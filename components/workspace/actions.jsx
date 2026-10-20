@@ -75,7 +75,7 @@ const REJECT_REASONS = [
   "Could not reach on the number given",
   "Duplicate of an existing record",
   "Details could not be confirmed",
-  "Not a genuine support group",
+  "Not a genuine volunteer",
   "Under 18",
 ];
 

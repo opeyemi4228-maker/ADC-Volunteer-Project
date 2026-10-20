@@ -17,7 +17,6 @@ const METRICS = [
   { key: "volunteers", label: "Volunteers", valueKey: "volunteers", format: "number" },
   { key: "pvc", label: "PVC readiness", valueKey: "pvcRate", format: "percent" },
   { key: "pu", label: "Polling unit coverage", valueKey: "puRate", format: "percent" },
-  { key: "groups", label: "Verified groups", valueKey: "groups", format: "number" },
 ];
 
 export default async function MapPage({ searchParams }) {
@@ -45,7 +44,7 @@ export default async function MapPage({ searchParams }) {
     gaps = { kind: "pu", rows: wardUnits(area.code).map((u) => ({ code: u.code, name: u.name, volunteers: counts.get(u.code) ?? 0, agents: agents.get(u.code) ?? 0 })) };
   }
   const onlyGaps = sp.view === "gaps";
-  const shownGaps = gaps ? (onlyGaps ? gaps.rows.filter((r) => (gaps.kind === "ward" ? !r.hasGroup || r.volunteers === 0 : r.volunteers === 0)) : gaps.rows) : [];
+  const shownGaps = gaps ? (onlyGaps ? gaps.rows.filter((r) => r.volunteers === 0) : gaps.rows) : [];
 
   return (
     <>
@@ -85,7 +84,7 @@ export default async function MapPage({ searchParams }) {
             <table className="table-clean">
               <thead>
                 {gaps.kind === "ward" ? (
-                  <tr><th>Ward</th><th className="text-right">Volunteers</th><th className="text-right">PUs covered</th><th>Verified group</th></tr>
+                  <tr><th>Ward</th><th className="text-right">Volunteers</th><th className="text-right">PUs covered</th></tr>
                 ) : (
                   <tr><th>Polling unit</th><th>Code</th><th className="text-right">Volunteers</th><th className="text-right">Agents</th></tr>
                 )}
@@ -96,7 +95,6 @@ export default async function MapPage({ searchParams }) {
                     <td><Link className="link" href={`/workspace/map?area=${r.code}`}>{r.name}</Link></td>
                     <td className={`num text-right ${r.volunteers ? "" : "font-semibold text-danger"}`}>{fmt(r.volunteers)}</td>
                     <td className="num text-right">{fmt(r.pus)} / {fmt(r.totalPus)}</td>
-                    <td>{r.hasGroup ? "Yes" : <span className="font-semibold text-warning">No verified group yet. Assign a mobiliser.</span>}</td>
                   </tr>
                 ) : (
                   <tr key={r.code}>

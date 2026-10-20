@@ -9,7 +9,7 @@ import { ok, fail, body } from "@/lib/http";
  * Sign-in with an email address or phone number and a password.
  *
  *   POST { login, password }
- *     Support group accounts (group coordinator only) are signed straight in: { done: true }.
+ *     Volunteer accounts (volunteer role only) are signed straight in: { done: true }.
  *     Campaign coordinators, who can see other people's data, also confirm a code
  *     sent to their phone (spec §15): { codeSent: true }, then POST { code }.
  *
@@ -46,7 +46,7 @@ export async function POST(request) {
   }
 
   const roles = all("SELECT role FROM role_assignments WHERE user_id = :u", { u: user.id }).map((r) => r.role);
-  if (roles.length > 0 && roles.every((r) => r === "group_coordinator")) {
+  if (roles.length > 0 && roles.every((r) => r === "volunteer")) {
     await startUserSession(user.id, { mfa: true });
     run("UPDATE users SET last_signin_at = :now WHERE id = :u", { now: nowIso(), u: user.id });
     audit({ id: user.id, name: user.name }, "signin", "user", user.id, { method: "password" }, ip);

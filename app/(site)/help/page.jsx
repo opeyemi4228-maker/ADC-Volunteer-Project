@@ -7,9 +7,7 @@ import PageIntro from "@/components/site/PageIntro";
 export const metadata = { title: "Help and contact" };
 
 const FAQ = [
-  ["Who can register a support group?", "Any group that supports the ADC: youth, women, traders, transport, professionals, community associations and more. It takes a few quick questions, and the group gets its own login."],
   ["What can I volunteer for?", "Polling unit agent, ward collation agent, mobiliser, door-to-door canvasser, social media, driver or logistics, event support, legal, medical and first aid, data and IT, security liaison or fundraising. Choose as many as you like when you register."],
-  ["What is an invite code?", "Every registered group gets a six-character code. Members enter it when they sign up as volunteers, or open the group's invite link, and the coordinator approves them."],
   ["Why do you need my polling unit?", "It links you to the coordinators closest to you, and lets the campaign plan agents for every polling unit. You'll find it printed on your voter's card (PVC). If you don't know it, tick \"I don't know my polling unit\"."],
   ["I stopped halfway. Is my progress lost?", "No. Your answers are saved after each step against your phone number. Come back to the same form, verify your number again, and choose \"Continue where I stopped\"."],
   ["I didn't get the SMS code.", "Check the number, wait a minute and tap \"Resend code\". Codes expire after 10 minutes. If it still doesn't arrive, message us on WhatsApp."],

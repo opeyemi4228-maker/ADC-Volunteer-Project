@@ -10,7 +10,7 @@ export default async function StatusPage() {
     <>
       <PageIntro
         title={t("Where is my registration?")}
-        lead={t("See whether your group or volunteer registration has been verified. We'll send a code to confirm it's your number.")}
+        lead={t("See whether your volunteer registration has been verified. We'll send a code to confirm it's your number.")}
       />
       <div className="container-page [&>*]:max-w-2xl">
         <StatusCheck />

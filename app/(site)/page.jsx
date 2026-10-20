@@ -17,8 +17,7 @@ export const dynamic = "force-dynamic";
 
 const FAQ = [
   ["Is it free?", "Yes. Registering, and every message we send you, is free."],
-  ["How does my group get its certificate?", "Register the group and create its login. Once a coordinator approves it, we email you and the certificate is ready to download from your group dashboard."],
-  ["What can I volunteer for?", "Anything from polling unit agent to social media, driving or first aid. Choose as many as you like when you register; you can change them later."],
+  ["What can I volunteer for?", "Anything from polling unit agent to social media, driving or first aid. Choose up to three when you register, so your coordinator knows where you'll help most."],
   ["Who sees my details?", "Only ADC coordinators for your own ward, LGA and state, and only what their role needs. Your phone number is encrypted when stored. We never sell data."],
   ["I don't know my polling unit.", "It's printed on your voter's card (PVC). If you don't have it to hand, tick \"I don't know my polling unit\" and your ward coordinator will help."],
   ["Can I register without data or a smartphone?", "Yes. Dial the USSD code on any phone, or ask your ward coordinator or a field agent to register you."],
@@ -65,8 +64,8 @@ export default async function HomePage() {
                   {t("Join as a volunteer")}
                   <ArrowRight aria-hidden className="size-5" />
                 </Link>
-                <Link href="/register" className="inline-flex min-h-11 items-center text-[16px] font-semibold text-white underline decoration-white/35 underline-offset-[6px] hover:decoration-white">
-                  {t("Register a support group")}
+                <Link href="/#ways-to-help" className="inline-flex min-h-11 items-center text-[16px] font-semibold text-white underline decoration-white/35 underline-offset-[6px] hover:decoration-white">
+                  {t("See the ways to help")}
                 </Link>
               </div>
               <p className="mt-8 flex flex-wrap gap-x-5 gap-y-1.5 text-[14px] text-white/55">
@@ -138,7 +137,7 @@ export default async function HomePage() {
         <div className="grid gap-10 rounded-[28px] bg-brand-700 p-7 text-white sm:p-12 lg:grid-cols-[1fr_1.1fr] lg:gap-16 lg:p-16">
           <div className="self-center">
             <h2 className="text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-balance sm:text-[2.75rem]">{t("See who's organising where you live.")}</h2>
-            <p className="mt-5 max-w-md text-[18px] leading-[1.6] text-white/85">{t("See how many verified volunteers and support groups are already active, across Nigeria or right down to your ward.")}</p>
+            <p className="mt-5 max-w-md text-[18px] leading-[1.6] text-white/85">{t("See how many verified volunteers are already active, across Nigeria or right down to your ward.")}</p>
           </div>
           <div className="rounded-2xl bg-white p-6 text-ink shadow-[0_24px_48px_-24px_rgb(0_0_0/0.45)] sm:p-8">
             <AreaFinder />
@@ -151,7 +150,7 @@ export default async function HomePage() {
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div className="max-w-2xl">
             <h2 className="text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-balance sm:text-[2.75rem]">{t("What would you like to volunteer for?")}</h2>
-            <p className="mt-4 text-[18px] leading-[1.6] text-ink-muted">{t("Choose one to start. You can add more when you register.")}</p>
+            <p className="mt-4 text-[18px] leading-[1.6] text-ink-muted">{t("Pick one to start. You can choose up to three when you register.")}</p>
           </div>
           <p className="text-[15px] text-ink-muted">
             <span className="num text-[28px] font-bold tracking-tight text-brand-800">{fmt(d.volunteers)}</span> {t("verified volunteers so far, in {s} states", { s: statesActive })}
@@ -180,39 +179,6 @@ export default async function HomePage() {
             );
           })}
         </ul>
-      </section>
-
-      {/* ── Support groups: register, get a dashboard and a certificate ─────── */}
-      <section id="support-groups" className="container-page reveal scroll-mt-24 pt-24 sm:pt-32">
-        <div className="grid items-center gap-10 overflow-hidden rounded-[28px] bg-white p-7 ring-1 ring-line sm:p-12 lg:grid-cols-[1.05fr_1fr] lg:gap-14 lg:p-14">
-          <div>
-            <p className="text-[15px] font-semibold text-brand-700">{t("For group leaders")}</p>
-            <h2 className="mt-3 text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-balance sm:text-[2.75rem]">{t("Register your support group")}</h2>
-            <p className="mt-5 max-w-lg text-[17px] leading-[1.65] text-ink-muted">
-              {t("A few quick questions and your group is on the map. You get a group ID, an invite code for your members, a dashboard to post your work, and a certificate once you're approved.")}
-            </p>
-            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
-              <Link href="/register" className="btn btn-primary btn-lg">
-                {t("Register a group")}
-                <ArrowRight aria-hidden className="size-5" />
-              </Link>
-              <Link href="/login" className="inline-flex min-h-11 items-center text-[16px] font-semibold text-brand-700 underline decoration-brand-700/30 underline-offset-[6px] hover:decoration-brand-700">
-                {t("Group login")}
-              </Link>
-            </div>
-          </div>
-          <div className="grid place-items-center rounded-3xl bg-paper-deep p-6 sm:p-8">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/brand/certificate-sample.jpg"
-              alt={t("Sample certificate of registration for a support group")}
-              width={1600}
-              height={1131}
-              loading="lazy"
-              className="w-full max-w-md rotate-[-2deg] rounded-md shadow-[0_18px_40px_-18px_rgb(6_63_32/0.45)]"
-            />
-          </div>
-        </div>
       </section>
 
       {/* ── Questions ─────────────────────────────────────────────────────── */}
@@ -252,9 +218,6 @@ export default async function HomePage() {
             <Link href="/volunteer" className="btn btn-primary btn-lg shrink-0">
               {t("Join as a volunteer")}
               <ArrowRight aria-hidden className="size-5" />
-            </Link>
-            <Link href="/register" className="btn btn-secondary btn-lg shrink-0">
-              {t("Register a group")}
             </Link>
           </div>
         </div>

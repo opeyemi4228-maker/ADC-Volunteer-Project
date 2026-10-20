@@ -1,15 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight } from "lucide-react";
-import GroupHome from "./GroupHome";
 
-import { requireViewer } from "@/lib/guard";
+import { requireViewer, isVolunteerOnly } from "@/lib/guard";
+import VolunteerHome from "./VolunteerHome";
 import { getT } from "@/lib/i18n/server";
 import { dashboard, coverage } from "@/lib/workspace-data";
 import { resolveArea, breadcrumb } from "@/lib/workspace-area";
 import { VOLUNTEER_ROLES } from "@/lib/options";
-import { scalar } from "@/lib/db";
-import { scopeSql } from "@/lib/scope";
 import { Card, Stat, fmt, pct, timeAgo } from "@/components/ui";
 import { PageHeader } from "@/components/workspace/ui";
 import LineChart from "@/components/workspace/charts/LineChart";
@@ -21,13 +19,13 @@ export const metadata = { title: "Overview" };
 const CHANNELS = { web: "Website", whatsapp: "WhatsApp", ussd: "USSD", field_agent: "Field agents" };
 
 export default async function Overview({ searchParams }) {
-  const viewer = await requireViewer();
+  const viewer = await requireViewer({ allowVolunteer: true });
   const t = await getT();
   const sp = await searchParams;
   if (viewer.powers.includes("field_agent") && viewer.roles.length === 1) redirect("/workspace/agent");
   if (viewer.powers.includes("data_requests") && viewer.roles.length === 1) redirect("/workspace/privacy");
-  // A support group's own account gets its group dashboard, not campaign analytics.
-  if (viewer.roles.length > 0 && viewer.roles.every((r) => r.role === "group_coordinator")) return <GroupHome viewer={viewer} groupId={viewer.roles[0].area_code} />;
+  // A volunteer's own account gets their dashboard (ID card, certificate), not campaign analytics.
+  if (isVolunteerOnly(viewer)) return <VolunteerHome viewer={viewer} volunteerId={viewer.roles[0].area_code} />;
 
   const area = resolveArea(viewer, sp.area);
   const d = dashboard(viewer, area.type, area.code);
@@ -37,14 +35,9 @@ export default async function Overview({ searchParams }) {
   const childLabel = { state: t("State"), lga: t("LGA"), ward: t("Ward") }[d.table[0]?.type] ?? "";
 
   const canVerify = viewer.powers.includes("verify");
-  const s = scopeSql(viewer, "volunteer");
-  const awaitingGroup = viewer.powers.includes("approve_members") ? scalar(`SELECT COUNT(*) FROM volunteers WHERE group_status = 'pending' AND ${s.sql}`, s.params) : 0;
   const attention = [
-    awaitingGroup > 0 && { href: "/workspace/volunteers?status=", text: awaitingGroup === 1 ? t("1 person waiting for you to approve them as a member") : t("{n} people waiting for you to approve them as members", { n: fmt(awaitingGroup) }), warn: true },
     canVerify && d.pendingVolunteers > 0 && { href: "/workspace/verify?tab=volunteers", text: d.pendingVolunteers === 1 ? t("1 volunteer to verify") : t("{n} volunteers to verify", { n: fmt(d.pendingVolunteers) }) },
-    canVerify && d.pendingGroups > 0 && { href: "/workspace/verify?tab=groups", text: d.pendingGroups === 1 ? t("1 group to verify") : t("{n} groups to verify", { n: fmt(d.pendingGroups) }) },
     canVerify && d.overdue > 0 && { href: "/workspace/verify", text: d.overdue === 1 ? t("1 record waiting more than 7 days") : t("{n} records waiting more than 7 days", { n: fmt(d.overdue) }), warn: true },
-    d.wardsWithoutGroup > 0 && { href: "/workspace/map?view=gaps", text: d.wardsWithoutGroup === 1 ? t("This ward has no verified group yet") : t("{n} wards with no verified group", { n: fmt(d.wardsWithoutGroup) }) },
     canVerify && d.pendingMedia > 0 && { href: "/workspace/media?status=pending", text: d.pendingMedia === 1 ? t("1 photo or video to review") : t("{n} photos and videos to review", { n: fmt(d.pendingMedia) }) },
     d.volunteers - d.withPu > 0 && { href: "/workspace/volunteers?nopu=1", text: t("{n} without a polling unit", { n: fmt(d.volunteers - d.withPu) }) },
   ].filter(Boolean);
@@ -92,9 +85,8 @@ export default async function Overview({ searchParams }) {
         />
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-6 lg:grid-cols-4">
-        <Stat label={t("Verified groups")} value={fmt(d.groupsVerified)} sub={t("{n} registered", { n: fmt(d.groupsTotal) })} />
-        <Stat label={t("Waiting for verification")} value={fmt(d.pendingVolunteers + d.pendingGroups)} tone={d.overdue ? "warn" : undefined} sub={d.overdue ? t("{n} over 7 days", { n: fmt(d.overdue) }) : t("None over 7 days")} />
+      <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-6 lg:grid-cols-3">
+        <Stat label={t("Waiting for verification")} value={fmt(d.pendingVolunteers)} tone={d.overdue ? "warn" : undefined} sub={d.overdue ? t("{n} over 7 days", { n: fmt(d.overdue) }) : t("None over 7 days")} />
         <Stat label={t("PU agents available")} value={fmt(d.agentsAvailable)} sub={d.totalPus ? t("{n} needed (primary and backup)", { n: fmt(d.totalPus * 2) }) : ""} />
         <Stat label={t("Media to review")} value={fmt(d.pendingMedia)} />
       </div>
@@ -152,7 +144,6 @@ export default async function Overview({ searchParams }) {
                   <th className="text-right">{t("Registered")}</th>
                   <th className="text-right">{t("Verified")}</th>
                   <th className="text-right">{t("PVC ready")}</th>
-                  <th className="text-right">{t("Verified groups")}</th>
                   <th className="text-right">{t("PUs covered")}</th>
                 </tr>
               </thead>
@@ -165,7 +156,6 @@ export default async function Overview({ searchParams }) {
                     <td className="num text-right">{fmt(r.registered)}</td>
                     <td className="num text-right">{fmt(r.verified)}</td>
                     <td className="num text-right">{pct(r.pvc, r.registered)}</td>
-                    <td className="num text-right">{r.groups ? fmt(r.groups) : <span className="text-warning">0</span>}</td>
                     <td className="num text-right">{fmt(r.pus)} / {fmt(r.totalPus)}</td>
                   </tr>
                 ))}
@@ -177,7 +167,7 @@ export default async function Overview({ searchParams }) {
 
       {!geo && (
         <p className="mt-6 text-[14px] text-ink-muted">
-          {area.type === "directorate" ? t("You see summary figures for groups in your directorate across Nigeria.") : t("You see figures for your own group.")}
+          {t("You see summary figures for your directorate across Nigeria.")}
         </p>
       )}
     </>

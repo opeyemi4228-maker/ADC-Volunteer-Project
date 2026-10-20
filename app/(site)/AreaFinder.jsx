@@ -15,7 +15,7 @@ import { cx, fmt } from "@/components/ui";
  * All three boxes are visible from the start (the later ones greyed out until
  * the one above is chosen), so the task is clear at a glance, the card never
  * looks empty, and it doesn't jump in size as you go. It ends with something to
- * do: join, or register a group.
+ * do: join.
  */
 export default function AreaFinder() {
   const t = useT();
@@ -90,8 +90,8 @@ export default function AreaFinder() {
             </dd>
           </div>
           <div>
-            <dt className="text-[14px] text-ink-muted">{t("Support groups")}</dt>
-            <dd className="num mt-1 text-[34px] font-bold leading-none tracking-tight text-brand-800">{n ? fmt(n.groups) : "—"}</dd>
+            <dt className="text-[14px] text-ink-muted">{t("Polling units covered")}</dt>
+            <dd className="num mt-1 text-[34px] font-bold leading-none tracking-tight text-brand-800">{n ? fmt(n.pollingUnits) : "—"}</dd>
           </div>
         </dl>
         <p className="mt-4 text-[15px] text-ink-muted">
@@ -101,9 +101,6 @@ export default function AreaFinder() {
           <Link href="/volunteer" className="btn btn-primary">
             {none ? t("Be the first") : t("Join them")}
             <ArrowRight aria-hidden className="size-4" />
-          </Link>
-          <Link href="/register" className="inline-flex min-h-11 items-center text-[15px] font-semibold text-brand-700 underline decoration-brand-700/30 underline-offset-[5px] hover:decoration-brand-700">
-            {t("Register a group")}
           </Link>
         </div>
       </div>

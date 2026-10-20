@@ -7,7 +7,6 @@ export const metadata = { title: "Join as a volunteer" };
 export default async function VolunteerPage({ searchParams }) {
   const t = await getT();
   const sp = await searchParams;
-  const code = String(sp.code ?? "").trim().toUpperCase().slice(0, 12);
   const role = String(sp.role ?? "").slice(0, 40);
   return (
     <>
@@ -16,7 +15,7 @@ export default async function VolunteerPage({ searchParams }) {
         lead={t("A few quick questions, one at a time. About 3 minutes, and you must be 18 or older.")}
       />
       <div className="container-page">
-        <VolunteerForm inviteCode={code} role={role} />
+        <VolunteerForm role={role} />
       </div>
     </>
   );

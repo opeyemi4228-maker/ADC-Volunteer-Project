@@ -83,7 +83,6 @@ export default function Composer({ areas, groups }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Select label="Area" value={aud.area} onChange={set("area")} options={areas} all="Your whole area" />
-        <Select label="Group" value={aud.group} onChange={set("group")} options={groups.map((g) => ({ value: g.id, label: g.name }))} all="Any group" />
         <Select label="Role" value={aud.role} onChange={set("role")} options={VOLUNTEER_ROLES} />
         <Select label="Availability" value={aud.availability} onChange={set("availability")} options={AVAILABILITY} />
         <Select label="Language" value={aud.language} onChange={set("language")} options={LANGUAGES} />

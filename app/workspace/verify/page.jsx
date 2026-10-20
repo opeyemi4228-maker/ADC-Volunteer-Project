@@ -54,12 +54,10 @@ export default async function VerifyPage({ searchParams }) {
   const viewer = await requireViewer();
   if (!viewer.powers.includes("verify")) redirect("/workspace");
   const sp = await searchParams;
-  const tab = sp.tab === "groups" ? "groups" : "volunteers";
+  const tab = "volunteers";
   const page = Number(sp.page) || 1;
 
-  const gs = scopeSql(viewer, "group");
   const vs = scopeSql(viewer, "volunteer");
-  const groupCount = scalar(`SELECT COUNT(*) FROM support_groups WHERE status IN ('pending','info_requested') AND ${gs.sql}`, gs.params);
   const volCount = scalar(`SELECT COUNT(*) FROM volunteers WHERE status IN ('pending','info_requested') AND ${vs.sql}`, vs.params);
 
   const list = tab === "groups" ? groupRows(viewer, { queue: 1, page, area: sp.area }) : volunteerRows(viewer, { queue: 1, page, area: sp.area, flagged: sp.flagged });
@@ -82,7 +80,6 @@ export default async function VerifyPage({ searchParams }) {
         current={tab}
         tabs={[
           { key: "volunteers", label: "Volunteers", count: volCount, href: "/workspace/verify?tab=volunteers" },
-          { key: "groups", label: "Groups", count: groupCount, href: "/workspace/verify?tab=groups" },
         ]}
       />
       {tab === "volunteers" && (
@@ -170,7 +167,6 @@ export default async function VerifyPage({ searchParams }) {
                     <div><dt className="text-ink-muted">Votes in</dt><dd className="font-medium">{r.place}</dd></div>
                     <div><dt className="text-ink-muted">Polling unit</dt><dd className="font-medium">{r.vote_pu_code ? areaName(r.vote_pu_code) : <span className="text-warning">Not given</span>}</dd></div>
                     <div><dt className="text-ink-muted">PVC</dt><dd className="font-medium">{labelOf(PVC_STATUS, r.pvc_status)}</dd></div>
-                    <div><dt className="text-ink-muted">Group</dt><dd className="font-medium">{r.group_name ?? "Not in a group"}</dd></div>
                     <div className="sm:col-span-2 lg:col-span-3"><dt className="text-ink-muted">Can help as</dt><dd className="font-medium">{r.roles.map((x) => labelOf(VOLUNTEER_ROLES, x)).join(", ")}</dd></div>
                     <div><dt className="text-ink-muted">Phone</dt><dd>{phone && <a href={`tel:${phone}`} className="inline-flex min-h-10 items-center gap-1 font-semibold text-brand-700"><Phone aria-hidden className="size-4" />{formatPhone(phone)}</a>}</dd></div>
                   </dl>

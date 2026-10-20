@@ -39,7 +39,7 @@ export default async function ActivitiesPage({ searchParams }) {
     <>
       <PageHeader
         title="Activities"
-        description="What groups are doing on the ground, and what voters are telling them."
+        description="What volunteers and coordinators are doing on the ground, and what voters are telling them."
         actions={viewer.powers.includes("log_activity") && <Link href="/workspace/activities/new" className="btn btn-primary btn-sm"><Plus aria-hidden className="size-4" /> Report an activity</Link>}
       />
       {sp.reported && <Alert tone="success" title={`Activity ${sp.reported} reported`} className="mb-4">Thank you. Photos and videos go to the moderation queue before they appear in galleries.</Alert>}
@@ -63,7 +63,7 @@ export default async function ActivitiesPage({ searchParams }) {
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.6fr_1fr]">
         <div>
           {rows.length === 0 ? (
-            <EmptyState icon={CalendarCheck} title="No activities in this period">When groups report meetings and outreaches they appear here.</EmptyState>
+            <EmptyState icon={CalendarCheck} title="No activities in this period">When meetings and outreaches are reported they appear here.</EmptyState>
           ) : (
             <ul className="space-y-3">
               {rows.map((a) => (
@@ -74,7 +74,7 @@ export default async function ActivitiesPage({ searchParams }) {
                       <p className="text-[14px] text-ink-muted">{dateLabel(a.date)}</p>
                     </div>
                     <p className="mt-0.5 text-[14px] text-ink-muted">
-                      {a.group_name ? <Link className="link" href={`/workspace/groups/${a.group_id}?tab=activities`}>{a.group_name}</Link> : "No group"} · <MapPin aria-hidden className="inline size-3.5" /> {placeLabel(a)}
+                      <MapPin aria-hidden className="inline size-3.5" /> {placeLabel(a)}
                     </p>
                     <p className="mt-2 text-[14px] num">
                       {a.attendance != null && <>Attendance {fmt(a.attendance)} · </>}

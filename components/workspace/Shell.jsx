@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
-  LayoutDashboard, ShieldCheck, Users, HandHeart, CalendarCheck, Images, ListTodo, Send, Map, Vote, ClipboardList,
-  FileDown, Settings, LogOut, Menu, X, ExternalLink, UserPlus, PenSquare, IdCard,
+  LayoutDashboard, ShieldCheck, HandHeart, CalendarCheck, Images, ListTodo, Send, Map, Vote, ClipboardList,
+  FileDown, Settings, LogOut, Menu, X, ExternalLink, UserPlus, IdCard, Award, KeyRound,
 } from "lucide-react";
 
 import { useT } from "@/lib/i18n/client";
@@ -15,8 +15,7 @@ import LanguageSwitch from "@/components/site/LanguageSwitch";
 const NAV = [
   { href: "/workspace", label: "Overview", icon: LayoutDashboard, exact: true },
   { href: "/workspace/verify", label: "Verification", icon: ShieldCheck, power: "verify", count: "verify" },
-  { href: "/workspace/groups", label: "Groups", icon: Users, anyOf: ["verify", "approve_members", "summary_only", "message"] },
-  { href: "/workspace/volunteers", label: "Volunteers", icon: HandHeart, anyOf: ["verify", "approve_members", "summary_only", "message", "field_agent"], count: "members" },
+  { href: "/workspace/volunteers", label: "Volunteers", icon: HandHeart, anyOf: ["verify", "summary_only", "message", "field_agent"] },
   { href: "/workspace/agent", label: "Field registration", icon: UserPlus, power: "field_agent" },
   { href: "/workspace/activities", label: "Activities", icon: CalendarCheck, power: "view_media" },
   { href: "/workspace/media", label: "Media library", icon: Images, power: "view_media", count: "media" },
@@ -29,29 +28,26 @@ const NAV = [
   { href: "/workspace/settings", label: "Settings", icon: Settings, power: "audit" },
 ];
 
-/** A support group's own menu: short, and about their work, not the campaign's. */
-const groupNav = (id) => [
+/** A volunteer's own menu: just their record. */
+const VOLUNTEER_NAV = [
   { href: "/workspace", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/workspace#post", label: "Post an update", icon: PenSquare, exact: true, match: "never" },
-  { href: "/workspace/activities", label: "Our updates", icon: CalendarCheck },
-  { href: "/workspace/volunteers", label: "Members", icon: HandHeart, count: "members" },
-  { href: "/workspace/media", label: "Photos", icon: Images },
-  { href: "/workspace/tasks", label: "Tasks", icon: ListTodo },
-  { href: `/workspace/groups/${id}`, label: "Group profile", icon: IdCard },
+  { href: "/workspace#id-card-title", label: "My ID card", icon: IdCard, exact: true, match: "never" },
+  { href: "/workspace#certificate", label: "My certificate", icon: Award, exact: true, match: "never" },
+  { href: "/workspace#password", label: "Change password", icon: KeyRound, exact: true, match: "never" },
 ];
 
-export default function WorkspaceShell({ viewer, areaLabel, counts, electionOn, groupId, children }) {
+export default function WorkspaceShell({ viewer, areaLabel, counts, electionOn, volunteerMode, children }) {
   const t = useT();
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   useEffect(() => setOpen(false), [pathname]);
 
-  const items = groupId ? groupNav(groupId) : NAV.filter((n) => (!n.power || viewer.powers.includes(n.power)) && (!n.anyOf || n.anyOf.some((p) => viewer.powers.includes(p))));
+  const items = volunteerMode ? VOLUNTEER_NAV : NAV.filter((n) => (!n.power || viewer.powers.includes(n.power)) && (!n.anyOf || n.anyOf.some((p) => viewer.powers.includes(p))));
 
   async function signOut() {
     await fetch("/api/v1/auth/signout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ which: "user" }) });
-    router.push(groupId ? "/login" : "/signin");
+    router.push(volunteerMode ? "/login" : "/signin");
     router.refresh();
   }
 
@@ -92,7 +88,7 @@ export default function WorkspaceShell({ viewer, areaLabel, counts, electionOn, 
   const identity = (
     <div className="border-b border-line px-3 pb-4">
       <p className="truncate text-[15px] font-semibold">{viewer.name}</p>
-      <p className="truncate text-[13px] text-ink-muted">{groupId ? areaLabel : `${viewer.roles.map((r) => t(r)).join(" · ")} · ${areaLabel}`}</p>
+      <p className="truncate text-[13px] text-ink-muted">{volunteerMode ? areaLabel : `${viewer.roles.map((r) => t(r)).join(" · ")} · ${areaLabel}`}</p>
     </div>
   );
 
@@ -104,7 +100,7 @@ export default function WorkspaceShell({ viewer, areaLabel, counts, electionOn, 
       <aside className="sticky top-0 hidden h-dvh flex-col gap-4 overflow-y-auto border-r border-line bg-white p-3 lg:flex">
         <Link href="/workspace" className="flex items-center gap-2.5 px-3 pt-2">
           <Logo size={30} />
-          <span className="text-[15px] font-bold">{groupId ? t("Group dashboard") : t("Workspace")}</span>
+          <span className="text-[15px] font-bold">{volunteerMode ? t("My volunteer dashboard") : t("Workspace")}</span>
         </Link>
         {identity}
         {nav}
@@ -133,7 +129,7 @@ export default function WorkspaceShell({ viewer, areaLabel, counts, electionOn, 
           <button type="button" aria-label={t("Close menu")} className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
           <div className="absolute inset-y-0 left-0 flex w-[86%] max-w-xs flex-col gap-4 overflow-y-auto bg-white p-3">
             <div className="flex items-center justify-between">
-              <span className="px-3 text-[15px] font-bold">{groupId ? t("Group dashboard") : t("Workspace")}</span>
+              <span className="px-3 text-[15px] font-bold">{volunteerMode ? t("My volunteer dashboard") : t("Workspace")}</span>
               <button type="button" onClick={() => setOpen(false)} className="grid size-11 place-items-center rounded-md hover:bg-surface-alt">
                 <X aria-hidden className="size-6" />
                 <span className="sr-only">{t("Close menu")}</span>

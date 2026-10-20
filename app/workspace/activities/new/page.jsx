@@ -23,7 +23,7 @@ export default async function NewActivity({ searchParams }) {
     <>
       <PageHeader crumbs={[{ label: "Activities", href: "/workspace/activities" }, { label: "Report an activity" }]} title="Report an activity" description="Meetings, outreaches, door-to-door and online campaigns. It takes about two minutes." />
       <div className="max-w-3xl">
-        <ActivityForm groups={groups} defaultGroup={chosen?.id} defaultLocation={location} />
+        <ActivityForm groups={[]} defaultGroup={undefined} defaultLocation={location} />
       </div>
     </>
   );

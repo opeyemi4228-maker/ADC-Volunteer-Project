@@ -27,13 +27,12 @@ export default async function VolunteersPage({ searchParams }) {
   const viewer = await requireViewer();
   const sp = await searchParams;
   const list = volunteerRows(viewer, sp);
-  const groupCoordinator = viewer.powers.includes("approve_members") && !viewer.powers.includes("verify");
 
   return (
     <>
       <PageHeader
         title="Volunteers"
-        description={groupCoordinator ? "People who joined your group. Approve the ones you know are members." : "Everyone registered in your area. Filter by role, PVC and polling unit to plan your work."}
+        description={"Everyone registered in your area. Filter by role, PVC and polling unit to plan your work."}
       />
       <FilterBar action="/workspace/volunteers" reset="/workspace/volunteers">
         <FilterSearch value={sp.q} placeholder="Name or volunteer ID" />
@@ -43,9 +42,6 @@ export default async function VolunteersPage({ searchParams }) {
         <FilterSelect name="channel" label="Channel" value={sp.channel} options={CHANNELS} />
         <label className="flex min-h-10 items-center gap-2 text-[14px] font-medium">
           <input type="checkbox" name="nopu" value="1" defaultChecked={Boolean(sp.nopu)} className="size-5 accent-brand-700" /> No polling unit
-        </label>
-        <label className="flex min-h-10 items-center gap-2 text-[14px] font-medium">
-          <input type="checkbox" name="unaffiliated" value="1" defaultChecked={Boolean(sp.unaffiliated)} className="size-5 accent-brand-700" /> Not in a group
         </label>
       </FilterBar>
 
@@ -61,7 +57,6 @@ export default async function VolunteersPage({ searchParams }) {
                 <th>Polling unit</th>
                 <th>PVC</th>
                 <th>Roles</th>
-                <th>Group</th>
                 <th>Registered</th>
                 <th>Status</th>
               </tr>
@@ -78,13 +73,9 @@ export default async function VolunteersPage({ searchParams }) {
                   <td className="text-[14px]">{v.vote_pu_code ? v.vote_pu_code.slice(-3) : <span className="text-warning">None</span>}</td>
                   <td className="text-[14px]">{v.pvc_status === "yes" ? "Yes" : v.pvc_status === "not_collected" ? "Not collected" : "Not registered"}</td>
                   <td className="min-w-40 text-[13px]">{v.roles.map((r) => labelOf(VOLUNTEER_ROLES, r)).join(", ")}</td>
-                  <td className="text-[14px]">{v.group_name ?? "—"}</td>
                   <td className="whitespace-nowrap text-[14px]">{dateLabel(v.created_at)}</td>
                   <td>
                     <StatusBadge status={v.status} />
-                    {groupCoordinator && v.status !== "rejected" && (
-                      <div className="mt-1"><ApiButton url={`/api/v1/volunteers/${v.id}/approve-member`} className="btn btn-ghost btn-sm" doneLabel="Approved">Approve member</ApiButton></div>
-                    )}
                   </td>
                 </tr>
               ))}

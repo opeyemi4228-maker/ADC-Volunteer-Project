@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Loader2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, Loader2, X } from "lucide-react";
 
 import { Card, cx } from "@/components/ui";
 import { useT } from "@/lib/i18n/client";
@@ -47,7 +47,9 @@ export default function QuestionFlow({ flow, screens, initial, onSubmit, submitL
 
   useEffect(() => {
     if (!id) return;
-    try { localStorage.setItem(key, JSON.stringify({ data, id, at: Date.now() })); } catch {}
+    // The password ("account") is never written to the device.
+    const { account, ...kept } = data;
+    try { localStorage.setItem(key, JSON.stringify({ data: kept, id, at: Date.now() })); } catch {}
   }, [key, data, id]);
 
   function set(path, value, item) {
@@ -182,8 +184,29 @@ function Item({ item, ctx, error, first }) {
   const id = `f-${(item.path ?? item.id).replace(/\W/g, "-")}`;
   const value = item.path ? getIn(data, item.path) : undefined;
   const wide = item.wide ?? !["text", "tel", "email", "password", "select"].includes(item.kind);
+  const [shown, setShown] = useState(false);
   const control = (() => {
     switch (item.kind) {
+      case "password":
+        return (
+          <div className="space-y-1.5">
+            <input
+              id={id}
+              className="input !min-h-13 !rounded-xl !text-[17px]"
+              type={shown ? "text" : "password"}
+              autoComplete={item.autoComplete}
+              maxLength={128}
+              value={value ?? ""}
+              onChange={(e) => set(item.path, e.target.value, item)}
+              aria-invalid={error ? "true" : undefined}
+              autoFocus={first}
+            />
+            <button type="button" className="inline-flex min-h-10 items-center gap-1.5 text-[14px] font-semibold text-brand-700" onClick={() => setShown((v) => !v)}>
+              {shown ? <EyeOff aria-hidden className="size-4" /> : <Eye aria-hidden className="size-4" />}
+              {shown ? t("Hide password") : t("Show password")}
+            </button>
+          </div>
+        );
       case "choice":
       case "multi":
         return <Chips item={item} value={value} onChange={(v) => set(item.path, v, item)} t={t} data={data} />;
@@ -282,22 +305,35 @@ function Chips({ item, value, onChange, t, data }) {
   );
 }
 
-/** Larger tick cards with a one-line description (used for the volunteer roles). */
+/**
+ * Larger tick cards with a one-line description (used for the volunteer roles).
+ * With `max`, once that many are ticked the rest are greyed out until one is
+ * unticked, and a counter says how many are chosen.
+ */
 function Cards({ item, value, onChange, t }) {
   const picked = new Set(value ?? []);
+  const full = item.max && picked.size >= item.max;
   return (
+    <div className="space-y-3">
+      {item.max && (
+        <p className={cx("text-[14px] font-semibold", full ? "text-brand-800" : "text-ink-muted")} aria-live="polite">
+          {full ? t("{n} of {max} chosen. Untick one to choose another.", { n: picked.size, max: item.max }) : t("{n} of {max} chosen", { n: picked.size, max: item.max })}
+        </p>
+      )}
     <div role="group" className="grid gap-2.5 sm:grid-cols-2">
       {item.options.map((o) => {
         const on = picked.has(o.value);
+        const locked = full && !on;
         return (
           <button
             key={o.value}
             type="button"
             aria-pressed={on}
-            onClick={() => onChange(on ? [...picked].filter((x) => x !== o.value) : [...picked, o.value])}
+            aria-disabled={locked || undefined}
+            onClick={() => { if (!locked) onChange(on ? [...picked].filter((x) => x !== o.value) : [...picked, o.value]); }}
             className={cx(
-              "flex items-start gap-3 rounded-2xl border bg-white p-3.5 text-left transition-colors",
-              on ? "border-brand-700 bg-brand-50 ring-1 ring-brand-700" : "border-line hover:border-ink/40",
+              "flex items-start gap-3 rounded-2xl border bg-white p-3.5 text-left transition-[color,background-color,border-color,opacity]",
+              on ? "border-brand-700 bg-brand-50 ring-1 ring-brand-700" : locked ? "cursor-not-allowed border-line opacity-45" : "border-line hover:border-ink/40",
             )}
           >
             <span className={cx("mt-0.5 grid size-5 shrink-0 place-items-center rounded-md", on ? "bg-brand-700 text-white" : "border border-ink/30")} aria-hidden>
@@ -310,6 +346,7 @@ function Cards({ item, value, onChange, t }) {
           </button>
         );
       })}
+    </div>
     </div>
   );
 }

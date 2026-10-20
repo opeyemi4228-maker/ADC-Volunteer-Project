@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** Short invite links for SMS (/join/KBW412) land on the volunteer form with the group pre-selected. */
-export default async function Join({ params }) {
-  const { code } = await params;
-  redirect(`/volunteer?code=${encodeURIComponent(String(code).toUpperCase().slice(0, 12))}`);
+/** The ADC Volunteers System registers individual volunteers only; this old link now goes to /volunteer. */
+export default function Moved() {
+  redirect("/volunteer");
 }

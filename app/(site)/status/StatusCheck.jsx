@@ -34,20 +34,17 @@ export default function StatusCheck() {
     );
   }
 
-  const { group, volunteer, drafts } = result;
-  const draft = drafts?.group ? "group" : drafts?.volunteer ? "volunteer" : null;
+  const { volunteer, drafts } = result;
+  const draft = drafts?.volunteer ? "volunteer" : null;
 
   return (
     <div className="space-y-4">
       <p className="text-[15px] text-ink-muted">{t("Registrations for {phone}", { phone: result.display })}</p>
 
-      {group && (
-        <Record icon={Users} kind={t("Support group")} title={group.name} id={group.publicId} status={group.status} />
-      )}
       {volunteer && (
         <Record icon={HandHeart} kind={t("Volunteer")} title={volunteer.firstName} id={volunteer.publicId} status={volunteer.status} />
       )}
-      {!group && !volunteer && (
+      {!volunteer && (
         <EmptyState
           icon={draft ? FileClock : Users}
           title={draft ? t("You have a registration in progress") : t("No registration found for this number")}
@@ -56,7 +53,6 @@ export default function StatusCheck() {
               <Link href="/volunteer" className="btn btn-primary">
                 {draft ? t("Continue registration") : t("Join as a volunteer")}
               </Link>
-              {!draft && <Link href="/register" className="btn btn-secondary">{t("Register a support group")}</Link>}
             </div>
           }
         >
@@ -64,7 +60,7 @@ export default function StatusCheck() {
         </EmptyState>
       )}
 
-      {(group || volunteer) && <YourData />}
+      {volunteer && <YourData />}
 
       <button type="button" className="btn btn-ghost" onClick={done}>
         {t("Check another number")}

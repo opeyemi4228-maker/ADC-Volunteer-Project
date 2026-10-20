@@ -15,7 +15,7 @@ export default function ExportRequest({ areas }) {
       <fieldset>
         <legend className="t-label">What</legend>
         <div className="mt-2 flex gap-2">
-          {[["volunteers", "Volunteers"], ["groups", "Groups"]].map(([v, l]) => (
+          {[["volunteers", "Volunteers"]].map(([v, l]) => (
             <label key={v} className="chip"><input type="radio" className="size-4 accent-brand-700" checked={f.kind === v} onChange={() => setF({ ...f, kind: v })} /> {l}</label>
           ))}
         </div>

@@ -18,15 +18,13 @@ export default async function SiteFooter() {
               <span className="text-[15px] font-bold text-white">{t("African Democratic Congress")}</span>
             </div>
             <p className="mt-5 text-[15px] leading-relaxed">
-              {t("One place for every ADC volunteer and support group, linked to their ward and polling unit.")}
+              {t("One place for every ADC volunteer, linked to their ward and polling unit.")}
             </p>
           </div>
 
           <FooterList title={t("Take part")}>
             <FooterLink href="/volunteer">{t("Join as a volunteer")}</FooterLink>
             <FooterLink href="/#ways-to-help">{t("Ways to help")}</FooterLink>
-            <FooterLink href="/register">{t("Register a support group")}</FooterLink>
-            <FooterLink href="/login">{t("Group login")}</FooterLink>
             <FooterLink href="/status">{t("Check my registration")}</FooterLink>
           </FooterList>
 

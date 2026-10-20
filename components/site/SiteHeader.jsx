@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Menu, X, ArrowRight, House, BadgeCheck, LifeBuoy, ShieldCheck, Users, LogIn } from "lucide-react";
+import { Menu, X, ArrowRight, House, BadgeCheck, LifeBuoy, ShieldCheck, LogIn } from "lucide-react";
 
 import { useT } from "@/lib/i18n/client";
 import { Logo, cx } from "@/components/ui";
@@ -11,14 +11,13 @@ import LanguageSwitch from "./LanguageSwitch";
 
 const NAV = [
   { href: "/", label: "Home", icon: House },
-  { href: "/register", label: "Register a group", icon: Users },
   { href: "/status", label: "Check my status", icon: BadgeCheck },
   { href: "/help", label: "Help", icon: LifeBuoy },
 ];
 
 const MOBILE_NAV = [
   ...NAV,
-  { href: "/login", label: "Group login", icon: LogIn },
+  { href: "/login", label: "Volunteer sign in", icon: LogIn },
   { href: "/signin", label: "Coordinator sign in", icon: ShieldCheck },
 ];
 
@@ -50,7 +49,7 @@ export default function SiteHeader() {
   }, [open]);
   const isActive = (href) => (href === "/" ? pathname === "/" : !href.includes("#") && (pathname === href || pathname.startsWith(`${href}/`)));
   // On the sign-up flows themselves the header button would only compete with the form.
-  const inFlow = ["/volunteer", "/register", "/signin", "/login"].some((p) => isActive(p));
+  const inFlow = ["/volunteer", "/signin", "/login"].some((p) => isActive(p));
 
   return (
     <header
@@ -109,13 +108,10 @@ export default function SiteHeader() {
           <Link
             href="/login"
             aria-current={isActive("/login") ? "page" : undefined}
-            className={cx(
-              "ml-1 hidden h-10 items-center gap-2 whitespace-nowrap rounded-full border px-4 text-[14.5px] font-semibold transition-colors sm:inline-flex",
-              isActive("/login") ? "border-brand-700 bg-brand-50 text-brand-800" : "border-line text-ink hover:border-brand-600 hover:text-brand-800",
-            )}
+            className="hidden h-10 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[14px] font-semibold text-ink/80 transition-colors hover:bg-ink/5 hover:text-ink md:inline-flex"
           >
             <LogIn aria-hidden className="size-4" />
-            {t("Group login")}
+            {t("Sign in")}
           </Link>
           <Link
             href="/volunteer"

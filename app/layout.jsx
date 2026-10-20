@@ -15,14 +15,14 @@ import { getLang } from "@/lib/i18n/server";
 export const metadata = {
   metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
   title: {
-    default: "ADC Volunteers System: join as a volunteer or register your support group",
+    default: "ADC Volunteers System: join as a volunteer",
     template: "%s · ADC Volunteers System",
   },
   description:
-    "Join the ADC as a volunteer or register your support group, in a few quick questions. Linked to your ward and polling unit, so coordinators across Nigeria can organise with you.",
+    "Join the ADC as a volunteer in a few quick questions. Choose how you'll help, and be linked to your ward and polling unit so coordinators near you can reach you.",
   openGraph: {
     title: "ADC Volunteers System",
-    description: "Join as an ADC volunteer or register your support group, from any phone.",
+    description: "Join as an ADC volunteer, from any phone.",
     images: ["/brand/adc-logo.png"],
   },
 };

@@ -18,3 +18,10 @@
 .ws .table-clean th { background: transparent; border-bottom: 1px solid var(--color-ink); }
 .ws .table-clean tbody tr:nth-child(even) td { background: transparent; }
 .ws .table-clean tbody tr:hover td { background: var(--color-surface-alt); }
+
+/* Printing the volunteer dashboard prints the ID card alone, at card size. */
+@media print {
+  body * { visibility: hidden; }
+  #id-card, #id-card * { visibility: visible; }
+  #id-card { position: absolute; left: 0; top: 0; width: 86mm !important; max-width: none; box-shadow: none; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+}

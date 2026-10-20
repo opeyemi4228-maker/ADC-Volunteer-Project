@@ -28,7 +28,7 @@ export default function SignInForm({ demo }) {
       setBusy(false);
       return setError(r.error);
     }
-    // Support group accounts go straight in; campaign coordinators confirm a code.
+    // Campaign coordinators confirm a code sent to their phone.
     if (r.data.done) {
       router.push("/workspace");
       router.refresh();
@@ -78,7 +78,6 @@ export default function SignInForm({ demo }) {
             </button>
             <div className="flex flex-wrap justify-between gap-2 text-[14px]">
               <Link href="/reset" className="link inline-flex min-h-11 items-center">{t("Forgot your password?")}</Link>
-              <Link href="/volunteer" className="link inline-flex min-h-11 items-center">{t("Join as a volunteer")}</Link>
             </div>
           </form>
         ) : (

@@ -98,8 +98,6 @@ export default async function VolunteerProfile({ params }) {
                   ["Languages", v.languages.map((l) => labelOf(LANGUAGES, l)).join(", ")],
                   ["Availability", labelOf(AVAILABILITY, v.availability)],
                   ["Smartphone", v.has_smartphone == null ? "" : v.has_smartphone ? "Yes" : "No"],
-                  ["Support group", v.group ? <Link key="g" className="link" href={`/workspace/groups/${v.group.id}`}>{v.group.name}</Link> : "Not in a group (ward pool)"],
-                  v.group && ["Group approval", v.group_status === "approved" ? "Approved by the group" : "Waiting for the group"],
                   v.social.length > 0 && ["Social media", v.social.map((s) => `${s.network}: ${s.handle}`).join(" · ")],
                   v.agent.length > 0 && ["Polling unit agent", v.agent.map((a) => `${a.is_backup ? "Backup" : "Primary"} at ${a.pu_code} · accreditation ${a.accreditation_status.replace("_", " ")}`).join("; ")],
                 ]}
@@ -109,13 +107,6 @@ export default async function VolunteerProfile({ params }) {
         </div>
         <div className="space-y-6">
           {can("verify") && <DecisionPanel kind="volunteer" id={v.id} status={v.status} />}
-          {v.group && v.group_status === "pending" && (can("approve_members") || can("verify")) && (
-            <Card className="p-4">
-              <p className="font-semibold">Joined {v.group.name}</p>
-              <p className="text-[14px] text-ink-muted">The group has not approved this member yet.</p>
-              <div className="mt-3"><ApiButton url={`/api/v1/volunteers/${v.id}/approve-member`} className="btn btn-primary btn-sm" doneLabel="Approved">Approve member</ApiButton></div>
-            </Card>
-          )}
           <Card className="p-5">
             <h2 className="h-section mb-3">Consent and history</h2>
             <ul className="space-y-2 text-[14px]">

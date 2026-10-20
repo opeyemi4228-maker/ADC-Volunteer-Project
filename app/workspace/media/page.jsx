@@ -37,11 +37,11 @@ export default async function MediaPage({ searchParams }) {
 
   return (
     <>
-      <PageHeader title="Media library" description="Photos and videos from groups and activities. Everything is reviewed before it appears in public galleries, and the media directorate clears items for campaign channels (credit to the group)." />
+      <PageHeader title="Media library" description="Photos and videos from activities. Everything is reviewed before it appears in public galleries, and the media directorate clears items for campaign channels (credit to the group)." />
       <Tabs tabs={tabs} current={status} />
       <FilterBar action="/workspace/media" reset={`/workspace/media?status=${status}`}>
         <input type="hidden" name="status" value={status} />
-        <FilterSearch value={sp.q} placeholder="Event, group or caption" />
+        <FilterSearch value={sp.q} placeholder="Event or caption" />
         <FilterSelect name="state" label="State" value={sp.state} options={stateList.map((x) => ({ value: x.code, label: x.name }))} />
         <FilterSelect name="kind" label="Type" value={sp.kind} options={[{ value: "photo", label: "Photos" }, { value: "video", label: "Videos" }, { value: "link", label: "Video links" }]} />
       </FilterBar>
@@ -50,7 +50,7 @@ export default async function MediaPage({ searchParams }) {
           {status === "pending" ? "New uploads in your area will appear here." : "Add photos from your next meeting or outreach."}
         </EmptyState>
       ) : (
-        <MediaGrid items={items} canModerate={viewer.powers.includes("moderate_media")} canPublicity={viewer.powers.includes("publicity")} showGroup />
+        <MediaGrid items={items} canModerate={viewer.powers.includes("moderate_media")} canPublicity={viewer.powers.includes("publicity")} />
       )}
       <Pagination page={page} pages={Math.max(1, Math.ceil(total / PAGE))} total={total} hrefFor={(p) => withParams("/workspace/media", { ...sp, status }, { page: p })} />
     </>

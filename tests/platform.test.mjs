@@ -44,7 +44,13 @@ test("under-18s are blocked and every step validates (§6, §11)", () => {
   assert.match(reg.validateVolunteer(volunteer())["about.phone"], /Nigerian mobile number/);
   const web = volunteer();
   web.about = { ...web.about, phone: "0809 111 0099" };
+  // ...and a password for the volunteer dashboard on the last screen.
+  assert.match(reg.validateVolunteer(web)["account.password"], /8 characters/);
+  web.account = { password: "Volunteer2026" };
   assert.deepEqual(reg.validateVolunteer(web), {});
+  // At most three roles.
+  web.help = { ...web.help, roles: ["pu_agent", "mobiliser", "canvasser", "legal"] };
+  assert.match(reg.validateVolunteer(web)["help.roles"], /up to three/);
 });
 
 test("exact phone match blocks; similar name + same DOB + same ward is flagged (§11)", () => {
@@ -142,12 +148,13 @@ test("membership lists: CSV with quotes and XML are read; rows without a name ar
   assert.equal(members.cleanRecords(xml).rows.length, 2);
 });
 
-test("certificates are only issued to verified groups, and carry a number", async () => {
+test("certificates are only issued to verified volunteers, and carry a number", async () => {
   const cert = await import("../lib/certificate.js");
-  const g = db.one("SELECT id FROM support_groups LIMIT 1");
-  assert.equal(await cert.buildCertificate(g.id), null);
-  db.run("UPDATE support_groups SET status = 'verified', verified_at = datetime('now') WHERE id = :id", { id: g.id });
-  const c = await cert.buildCertificate(g.id);
+  const v = db.one("SELECT id FROM volunteers LIMIT 1");
+  db.run("UPDATE volunteers SET status = 'pending' WHERE id = :id", { id: v.id });
+  assert.equal(await cert.buildCertificate(v.id), null);
+  db.run("UPDATE volunteers SET status = 'verified', verified_at = datetime('now') WHERE id = :id", { id: v.id });
+  const c = await cert.buildCertificate(v.id);
   assert.match(c.number, /^ADC-CERT-\d{4}-\d+$/);
   assert.equal(Buffer.from(c.bytes).subarray(0, 5).toString(), "%PDF-");
 });

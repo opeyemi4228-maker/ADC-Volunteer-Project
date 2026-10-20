@@ -6,7 +6,7 @@ import { CloudUpload, Loader2, WifiOff, CheckCircle2, AlertTriangle } from "luci
 
 import { useForm, TextField, SelectField, ChoiceChips } from "@/components/forms/controls";
 import LocationPicker from "@/components/forms/LocationPicker";
-import { GENDERS, PVC_STATUS, VOLUNTEER_ROLES, LANGUAGES, AVAILABILITY, CONTACT_CHANNELS } from "@/lib/options";
+import { GENDERS, PVC_STATUS, VOLUNTEER_ROLES, LANGUAGES, AVAILABILITY, CONTACT_CHANNELS, MAX_ROLES } from "@/lib/options";
 import { normalizePhone, isValidName, ageOn, isValidIsoDate } from "@/lib/validate";
 
 const QUEUE = "adc_agent_queue";
@@ -28,6 +28,7 @@ function check(d) {
   if (!d.vote.ward) e["vote.state"] = "Choose state, LGA and ward.";
   if (!d.vote.pvc) e["vote.pvc"] = "Ask about their PVC.";
   if (!d.help.roles?.length) e["help.roles"] = "Choose at least one role.";
+  else if (d.help.roles.length > MAX_ROLES) e["help.roles"] = "Choose up to three roles.";
   if (!d.help.availability) e["help.availability"] = "Choose availability.";
   if (!d.help.smartphone) e["help.smartphone"] = "Ask whether they have a smartphone.";
   if (!d.help.channel) e["help.channel"] = "Choose the best way to reach them.";
@@ -154,7 +155,7 @@ export default function AgentForm({ defaultArea, today }) {
 
         <section className="card space-y-4 p-5">
           <h2 className="h-section">How they can help</h2>
-          <ChoiceChips form={form} path="help.roles" label="Roles" options={VOLUNTEER_ROLES} multiple />
+          <ChoiceChips form={form} path="help.roles" label="Roles (up to three)" options={VOLUNTEER_ROLES} multiple />
           <ChoiceChips form={form} path="help.languages" label="Languages" options={LANGUAGES} multiple />
           <div className="grid gap-4 sm:grid-cols-2">
             <SelectField form={form} path="help.availability" label="Availability" options={AVAILABILITY} placeholder="Choose" />

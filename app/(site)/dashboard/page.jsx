@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** The coordinator area lives at /workspace; this keeps old links working. */
-export default function DashboardPage() {
+/** The ADC Volunteers System registers individual volunteers only; this old link now goes to /workspace. */
+export default function Moved() {
   redirect("/workspace");
 }
