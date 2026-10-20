@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight, ArrowUpRight, Phone, MapPin, ListChecks, Vote, ClipboardCheck, Megaphone, DoorOpen, Smartphone, Truck,
-  CalendarDays, Scale, Stethoscope, Laptop, ShieldCheck, HandCoins,
+  CalendarDays, Scale, Stethoscope, Laptop, ShieldCheck, HandCoins, Check,
 } from "lucide-react";
 
 import { getT } from "@/lib/i18n/server";
@@ -41,48 +41,51 @@ export default async function HomePage() {
   return (
     <>
       {/* ── Hero: an inset panel, the live map as the one visual idea ─────── */}
-      <section className="px-3 pt-3 sm:px-4 sm:pt-4">
-        <div className="relative overflow-hidden rounded-[28px] bg-brand-950 text-white">
+      <section className="overflow-x-clip px-3 pt-3 sm:px-4 sm:pt-4">
+        <div className="relative isolate overflow-hidden rounded-3xl bg-brand-950 text-white sm:rounded-[28px]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_80%_at_85%_40%,rgb(18_166_80/0.22),transparent_70%)]" aria-hidden />
-          <div className="container-page relative grid items-center gap-6 pb-10 pt-12 sm:pb-14 sm:pt-16 lg:grid-cols-[1.05fr_1fr] lg:gap-4 lg:py-20">
-            <div className="max-w-xl">
-              <p className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.06] py-1.5 pl-2.5 pr-3.5 text-[13px] font-medium text-white/85">
-                <span className="relative flex size-2">
+          <div className="container-page relative grid min-w-0 items-center gap-8 pb-8 pt-8 max-sm:px-5 sm:gap-6 sm:pb-14 sm:pt-16 lg:grid-cols-[1.05fr_1fr] lg:gap-4 lg:py-20">
+            <div className="min-w-0 max-w-xl">
+              <p className="inline-flex max-w-full items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.06] py-1.5 pl-2.5 pr-3 text-[12px] font-medium text-white/85 min-[360px]:text-[12.5px] sm:pr-3.5 sm:text-[13px]">
+                <span className="relative flex size-2 shrink-0">
                   <span className="live-dot absolute inset-0 rounded-full bg-brand-300" />
                   <span className="relative size-2 rounded-full bg-brand-300" />
                 </span>
                 {t("{n} verified volunteers in {s} states", { n: fmt(d.volunteers), s: statesActive })}
               </p>
-              <h1 className="mt-6 text-[2.5rem] font-bold leading-[1.05] tracking-[-0.035em] text-balance sm:text-[3.5rem] lg:text-[4rem]">
+              <h1 className="mt-5 text-[clamp(2rem,9.6vw,2.5rem)] font-bold leading-[1.06] tracking-[-0.035em] text-balance sm:mt-6 sm:text-[3.5rem] lg:text-[4rem]">
                 {t("Nigeria is organising, ward by ward.")}
               </h1>
-              <p className="mt-6 max-w-[34rem] text-[17px] leading-[1.65] text-white/75 sm:text-[18px]">
+              <p className="mt-4 max-w-[34rem] text-pretty text-[16px] leading-[1.6] text-white/75 sm:mt-6 sm:text-[18px] sm:leading-[1.65]">
                 {t("Join as a volunteer and you'll be linked to your ward and polling unit, so the coordinators nearest you can reach you.")}
               </p>
-              <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
-                <Link href="/volunteer" className="btn btn-lg bg-accent-500 text-ink hover:bg-[#ff8a3d]">
+              <div className="mt-7 flex flex-col items-stretch gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-7 sm:gap-y-4">
+                <Link href="/volunteer" className="btn btn-lg w-full justify-center bg-accent-500 text-ink hover:bg-[#ff8a3d] sm:w-auto">
                   {t("Join as a volunteer")}
                   <ArrowRight aria-hidden className="size-5" />
                 </Link>
-                <Link href="/#ways-to-help" className="inline-flex min-h-11 items-center text-[16px] font-semibold text-white underline decoration-white/35 underline-offset-[6px] hover:decoration-white">
+                <Link href="/#ways-to-help" className="inline-flex min-h-11 items-center justify-center text-[16px] font-semibold text-white underline decoration-white/35 underline-offset-[6px] hover:decoration-white sm:justify-start">
                   {t("See the ways to help")}
                 </Link>
               </div>
-              <p className="mt-8 flex flex-wrap gap-x-5 gap-y-1.5 text-[14px] text-white/55">
-                <span>{t("Free")}</span>
-                <span>{t("About 3 minutes")}</span>
-                <span>{t("Works on any phone")}</span>
-              </p>
+              <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[13px] text-white/65 sm:mt-8 sm:justify-start sm:gap-x-5 sm:text-[14px]">
+                {[t("Free"), t("About 3 minutes"), t("Works on any phone")].map((x) => (
+                  <li key={x} className="flex items-center gap-1.5 whitespace-nowrap">
+                    <Check aria-hidden className="size-3.5 text-brand-300" strokeWidth={3} />
+                    {x}
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            <figure className="relative -mx-2 sm:mx-0">
+            <figure className="relative mx-auto w-full min-w-0 max-w-[26rem] border-t border-white/10 pt-6 sm:max-w-[32rem] sm:border-0 sm:pt-0 lg:max-w-none">
               <DotMap
                 byState={d.byState}
                 recentByState={d.momentum.recentByState}
                 label={t("Map of Nigeria: states light up by verified volunteers; pulses mark the most sign-ups this week")}
                 className="h-auto w-full"
               />
-              <figcaption className="mt-2 flex flex-wrap items-center justify-end gap-x-5 gap-y-1 text-[12px] text-white/55">
+              <figcaption className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-[12px] text-white/55 sm:mt-2 sm:justify-end">
                 <span className="flex items-center gap-2">
                   <span className="h-1.5 w-10 rounded-full bg-gradient-to-r from-brand-400 to-brand-100" aria-hidden />
                   {t("Verified volunteers")}
@@ -211,10 +214,10 @@ export default async function HomePage() {
       {/* ── Close ─────────────────────────────────────────────────────────── */}
       <section className="container-page reveal pb-4 pt-24 sm:pt-32">
         <div className="flex flex-col items-start justify-between gap-8 border-t border-line pt-12 md:flex-row md:items-end">
-          <h2 className="max-w-2xl text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-balance sm:text-[2.75rem]">
+          <h2 className="min-w-0 max-w-2xl text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-balance sm:text-[2.75rem] md:flex-1">
             {t("Your polling unit needs you.")}
           </h2>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex shrink-0 flex-wrap gap-3 max-sm:w-full max-sm:[&>a]:w-full">
             <Link href="/volunteer" className="btn btn-primary btn-lg shrink-0">
               {t("Join as a volunteer")}
               <ArrowRight aria-hidden className="size-5" />
