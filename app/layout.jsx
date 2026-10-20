@@ -1,26 +1,16 @@
-import { Montserrat, Noto_Sans } from "next/font/google";
-
+// Fonts ship with the site (no download from Google at build time, so a build
+// never fails on a network hiccup, and no visitor data goes to Google).
+// Montserrat is the brand face; its latin-ext and vietnamese ranges cover every
+// letter used in Hausa (ƙ ɗ ɓ ƴ), Yoruba (ẹ ọ ṣ, tone marks) and Igbo (ị ọ ụ ṅ).
+// Noto Sans sits behind it as a safety net. Each file is split by
+// unicode-range, so a browser only downloads the ranges a page actually uses.
+import "@fontsource-variable/montserrat/wght.css";
+import "@fontsource/noto-sans/400.css";
+import "@fontsource/noto-sans/600.css";
+import "@fontsource/noto-sans/700.css";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/client";
 import { getLang } from "@/lib/i18n/server";
-
-// Montserrat is the brand face. Its latin-ext and vietnamese subsets cover every
-// letter used in Hausa (ƙ ɗ ɓ ƴ), Yoruba (ẹ ọ ṣ, tone marks) and Igbo (ị ọ ụ ṅ).
-// Noto Sans stays behind it as a safety net for any rarer glyph; it isn't
-// preloaded, so browsers only fetch it if a page actually needs it (spec §3.2, §14).
-const montserrat = Montserrat({
-  subsets: ["latin", "latin-ext", "vietnamese"],
-  display: "swap",
-  variable: "--font-montserrat",
-});
-
-const noto = Noto_Sans({
-  subsets: ["latin", "latin-ext", "vietnamese"],
-  weight: ["400", "600", "700"],
-  display: "swap",
-  preload: false,
-  variable: "--font-noto",
-});
 
 export const metadata = {
   metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
@@ -46,7 +36,7 @@ export const viewport = {
 export default async function RootLayout({ children }) {
   const lang = await getLang();
   return (
-    <html lang={lang === "pcm" ? "pcm" : lang} className={`${montserrat.variable} ${noto.variable}`}>
+    <html lang={lang === "pcm" ? "pcm" : lang}>
       <body className="min-h-dvh font-sans">
         <I18nProvider lang={lang}>{children}</I18nProvider>
       </body>
