@@ -3,7 +3,7 @@ import SiteFooter from "@/components/site/SiteFooter";
 
 export default function SiteLayout({ children }) {
   return (
-    <div className="flex min-h-dvh flex-col bg-paper">
+    <div className="flex min-h-dvh flex-col bg-white">
       <SiteHeader />
       <main id="main" className="flex-1">
         {children}

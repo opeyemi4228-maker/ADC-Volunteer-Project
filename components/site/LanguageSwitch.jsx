@@ -29,7 +29,7 @@ export default function LanguageSwitch({ tone = "light", className = "", compact
   if (compact) {
     const current = LANGS.find((l) => l.code === lang) ?? LANGS[0];
     return (
-      <label className={`relative inline-flex h-10 items-center gap-1.5 rounded-full px-3 text-[14px] font-semibold text-ink/75 transition-colors hover:bg-ink/5 hover:text-ink focus-within:outline focus-within:outline-2 focus-within:outline-accent-500 ${pending ? "opacity-60" : ""} ${className}`}>
+      <label className={`relative inline-flex h-10 items-center gap-1.5 rounded-full px-3 text-[14px] font-semibold transition-colors ${tone === "dark" ? "text-white/85 hover:bg-white/10 hover:text-white" : "text-ink/75 hover:bg-ink/5 hover:text-ink"} focus-within:outline focus-within:outline-2 focus-within:outline-accent-500 ${pending ? "opacity-60" : ""} ${className}`}>
         <Languages aria-hidden className="size-4" />
         <span aria-hidden>{current.short}</span>
         <ChevronDown aria-hidden className="size-3.5" />
