@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight, ArrowUpRight, Phone, MapPin, ListChecks, Vote, ClipboardCheck, Megaphone, DoorOpen, Smartphone, Truck,
-  CalendarDays, Scale, Stethoscope, Laptop, ShieldCheck, HandCoins, Check,
+  CalendarDays, Scale, Stethoscope, Laptop, ShieldCheck, HandCoins, Check, BadgeCheck,
 } from "lucide-react";
 
 import { getT } from "@/lib/i18n/server";
@@ -43,10 +43,10 @@ export default async function HomePage() {
   return (
     <>
       {/* ── Hero: an inset panel, the live map as the one visual idea ─────── */}
-      <section className="overflow-x-clip px-3 pt-3 sm:px-4 sm:pt-4">
+      <section className="page-inset overflow-x-clip">
         <div className="relative isolate overflow-hidden rounded-3xl bg-brand-950 text-white sm:rounded-[28px]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_80%_at_85%_40%,rgb(18_166_80/0.22),transparent_70%)]" aria-hidden />
-          <div className="container-page relative grid min-w-0 items-center gap-8 pb-8 pt-8 max-sm:px-5 sm:gap-6 sm:pb-14 sm:pt-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10 lg:py-14 xl:gap-12 xl:py-20">
+          <div className="container-page relative grid min-w-0 items-center gap-8 py-9 max-sm:px-5 sm:gap-10 sm:py-14 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10 lg:py-16 xl:gap-12 xl:py-20">
             <div className="min-w-0 max-w-xl">
               <p className="inline-flex max-w-full items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.06] py-1.5 pl-2.5 pr-3 text-[12px] font-medium text-white/85 min-[360px]:text-[12.5px] sm:pr-3.5 sm:text-[13px]">
                 <span className="relative flex size-2 shrink-0">
@@ -80,6 +80,12 @@ export default async function HomePage() {
                   </li>
                 ))}
               </ul>
+              <p className="mt-5 text-center text-[14px] text-white/65 sm:mt-6 sm:border-t sm:border-white/10 sm:pt-5 sm:text-left">
+                {t("Already registered?")}{" "}
+                <Link href="/login" className="font-semibold text-white underline decoration-white/35 underline-offset-4 hover:decoration-white">
+                  {t("Sign in for your ID card and certificate")}
+                </Link>
+              </p>
             </div>
 
             <figure className="relative mx-auto w-full min-w-0 max-w-[26rem] border-t border-white/10 pt-6 sm:max-w-[32rem] sm:border-0 sm:pt-0 lg:ml-auto lg:mr-0 lg:max-w-[36rem]">
@@ -129,6 +135,35 @@ export default async function HomePage() {
         </section>
       )}
 
+      {/* ── How it works: what happens after "Join", in three steps ─────────── */}
+      <section className="container-page reveal pt-24 sm:pt-32">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <h2 className="max-w-2xl text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-balance sm:text-[2.75rem]">{t("How it works")}</h2>
+          <p className="max-w-sm text-[16px] leading-[1.6] text-ink-muted">{t("From sign-up to your first task, here is what to expect.")}</p>
+        </div>
+        <ol className="mt-10 grid gap-px overflow-hidden rounded-3xl bg-line ring-1 ring-line md:grid-cols-3">
+          {[
+            [ClipboardCheck, t("Register in about 3 minutes"), t("Choose up to three ways to help, tell us where you vote, and create a password.")],
+            [Phone, t("A coordinator confirms you"), t("Your ward coordinator calls to check your details, usually within 7 days. We let you know by SMS.")],
+            [BadgeCheck, t("Get your ID card and certificate"), t("Sign in to download your volunteer ID card and certificate, and hear about tasks near you.")],
+          ].map(([Icon, title, body], i) => (
+            <li key={title} className="relative flex items-start gap-5 bg-white p-6 sm:p-8 md:flex-col md:gap-0">
+              <span className="flex shrink-0 items-center gap-3 md:justify-between">
+                <span className="grid size-12 place-items-center rounded-full bg-brand-700 text-white">
+                  <Icon aria-hidden className="size-6" strokeWidth={2} />
+                </span>
+                <span className="num hidden text-[44px] font-bold leading-none tracking-tight text-line md:block" aria-hidden>0{i + 1}</span>
+              </span>
+              <span className="min-w-0 md:mt-6">
+                <span className="text-[13px] font-semibold uppercase tracking-[0.12em] text-brand-700">{t("Step {n}", { n: i + 1 })}</span>
+                <span className="mt-1 block text-[1.25rem] font-bold leading-tight tracking-[-0.02em]">{title}</span>
+                <span className="mt-2 block text-[15px] leading-[1.65] text-ink-muted">{body}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
       {/* ── Why register: three plain promises (Labour's "plan" cards) ─────── */}
       <section className="container-page reveal pt-24 sm:pt-32">
         <h2 className="max-w-2xl text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-balance sm:text-[2.75rem]">{t("Why register with the ADC")}</h2>
@@ -169,24 +204,26 @@ export default async function HomePage() {
             <span className="num text-[28px] font-bold tracking-tight text-brand-800">{fmt(d.volunteers)}</span> {t("verified volunteers so far, in {s} states", { s: statesActive })}
           </p>
         </div>
-        <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-10 grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
           {VOLUNTEER_ROLES.map((r) => {
             const Icon = ROLE_ICONS[r.value] ?? ListChecks;
             return (
               <li key={r.value}>
                 <Link
                   href={`/volunteer?role=${r.value}`}
-                  className="group flex h-full flex-col rounded-3xl bg-white p-6 ring-1 ring-line transition-shadow hover:shadow-[0_14px_34px_-18px_rgb(6_63_32/0.35)] hover:ring-brand-200"
+                  className="group flex h-full items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-line transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_34px_-18px_rgb(6_63_32/0.35)] hover:ring-brand-200 sm:items-start sm:rounded-3xl sm:p-6"
                 >
-                  <span className="grid size-12 place-items-center rounded-full bg-brand-50 text-brand-700 transition-colors group-hover:bg-brand-700 group-hover:text-white">
-                    <Icon aria-hidden className="size-6" strokeWidth={2} />
+                  <span className="grid size-11 shrink-0 place-items-center rounded-full bg-brand-50 text-brand-700 transition-colors group-hover:bg-brand-700 group-hover:text-white sm:size-12">
+                    <Icon aria-hidden className="size-5 sm:size-6" strokeWidth={2} />
                   </span>
-                  <h3 className="mt-5 text-[1.25rem] font-bold leading-tight tracking-[-0.02em]">{t(r.label)}</h3>
-                  <p className="mt-2 flex-1 text-[15px] leading-[1.6] text-ink-muted">{t(r.hint)}</p>
-                  <span className="mt-5 inline-flex items-center gap-1.5 text-[15px] font-semibold text-brand-700">
-                    {t("Volunteer for this")}
-                    <ArrowRight aria-hidden className="size-4 transition-transform group-hover:translate-x-1" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[16px] font-bold leading-tight tracking-[-0.01em] sm:text-[1.15rem]">{t(r.label)}</span>
+                    <span className="mt-1 block text-[14px] leading-[1.5] text-ink-muted sm:mt-1.5 sm:text-[15px]">{t(r.hint)}</span>
                   </span>
+                  <span className="grid size-9 shrink-0 place-items-center rounded-full text-brand-700 ring-1 ring-line transition-colors group-hover:bg-brand-700 group-hover:text-white group-hover:ring-brand-700" aria-hidden>
+                    <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                  </span>
+                  <span className="sr-only">{t("Volunteer for this")}</span>
                 </Link>
               </li>
             );

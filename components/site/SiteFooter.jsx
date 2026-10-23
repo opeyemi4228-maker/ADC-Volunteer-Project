@@ -7,7 +7,7 @@ export default async function SiteFooter() {
   const t = await getT();
   const ussd = process.env.NEXT_PUBLIC_USSD_CODE ?? "*XXX*YY#";
   return (
-    <footer className="mt-24 px-3 pb-3 sm:mt-32 sm:px-4 sm:pb-4">
+    <footer className="page-inset mt-24 pb-4 sm:mt-32 sm:pb-6">
       <div className="rounded-[28px] bg-brand-950 text-white/70">
         <div className="container-page grid gap-12 pb-10 pt-14 sm:pt-16 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div className="max-w-xs">
