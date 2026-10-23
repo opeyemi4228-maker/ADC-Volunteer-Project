@@ -37,6 +37,8 @@ export default async function HomePage() {
   const d = data();
   const ussd = process.env.NEXT_PUBLIC_USSD_CODE ?? "*XXX*YY#";
   const statesActive = Object.keys(d.byState).length;
+  // Live figures only once they say something; "0 volunteers in 0 states" helps nobody.
+  const showCount = d.volunteers >= 25;
 
   return (
     <>
@@ -44,22 +46,24 @@ export default async function HomePage() {
       <section className="overflow-x-clip px-3 pt-3 sm:px-4 sm:pt-4">
         <div className="relative isolate overflow-hidden rounded-3xl bg-brand-950 text-white sm:rounded-[28px]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_80%_at_85%_40%,rgb(18_166_80/0.22),transparent_70%)]" aria-hidden />
-          <div className="container-page relative grid min-w-0 items-center gap-8 pb-8 pt-8 max-sm:px-5 sm:gap-6 sm:pb-14 sm:pt-16 lg:grid-cols-[1.05fr_1fr] lg:gap-4 lg:py-20">
+          <div className="container-page relative grid min-w-0 items-center gap-8 pb-8 pt-8 max-sm:px-5 sm:gap-6 sm:pb-14 sm:pt-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10 lg:py-14 xl:gap-12 xl:py-20">
             <div className="min-w-0 max-w-xl">
               <p className="inline-flex max-w-full items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.06] py-1.5 pl-2.5 pr-3 text-[12px] font-medium text-white/85 min-[360px]:text-[12.5px] sm:pr-3.5 sm:text-[13px]">
                 <span className="relative flex size-2 shrink-0">
                   <span className="live-dot absolute inset-0 rounded-full bg-brand-300" />
                   <span className="relative size-2 rounded-full bg-brand-300" />
                 </span>
-                {t("{n} verified volunteers in {s} states", { n: fmt(d.volunteers), s: statesActive })}
+                {showCount
+                  ? t("{n} verified volunteers in {s} states", { n: fmt(d.volunteers), s: statesActive })
+                  : t("Registration is open in all 36 states and the FCT")}
               </p>
-              <h1 className="mt-5 text-[clamp(2rem,9.6vw,2.5rem)] font-bold leading-[1.06] tracking-[-0.035em] text-balance sm:mt-6 sm:text-[3.5rem] lg:text-[4rem]">
+              <h1 className="mt-5 text-[clamp(2rem,9.6vw,2.5rem)] font-bold leading-[1.06] tracking-[-0.035em] text-balance sm:mt-6 sm:text-[3.5rem] lg:text-[3.4rem] xl:text-[4.1rem]">
                 {t("Nigeria is organising, ward by ward.")}
               </h1>
-              <p className="mt-4 max-w-[34rem] text-pretty text-[16px] leading-[1.6] text-white/75 sm:mt-6 sm:text-[18px] sm:leading-[1.65]">
+              <p className="mt-4 max-w-[34rem] text-pretty text-[16px] leading-[1.6] text-white/75 sm:mt-6 sm:text-[18px] sm:leading-[1.65] lg:mt-5 lg:text-[17px] xl:mt-6 xl:text-[18px]">
                 {t("Join as a volunteer and you'll be linked to your ward and polling unit, so the coordinators nearest you can reach you.")}
               </p>
-              <div className="mt-7 flex flex-col items-stretch gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-7 sm:gap-y-4">
+              <div className="mt-7 flex flex-col items-stretch gap-3 sm:mt-9 lg:mt-8 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-7 sm:gap-y-4">
                 <Link href="/volunteer" className="btn btn-lg w-full justify-center bg-accent-500 text-ink hover:bg-[#ff8a3d] sm:w-auto">
                   {t("Join as a volunteer")}
                   <ArrowRight aria-hidden className="size-5" />
@@ -68,7 +72,7 @@ export default async function HomePage() {
                   {t("See the ways to help")}
                 </Link>
               </div>
-              <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[13px] text-white/65 sm:mt-8 sm:justify-start sm:gap-x-5 sm:text-[14px]">
+              <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[13px] text-white/65 sm:mt-7 sm:justify-start sm:gap-x-5 sm:text-[14px]">
                 {[t("Free"), t("About 3 minutes"), t("Works on any phone")].map((x) => (
                   <li key={x} className="flex items-center gap-1.5 whitespace-nowrap">
                     <Check aria-hidden className="size-3.5 text-brand-300" strokeWidth={3} />
@@ -78,7 +82,7 @@ export default async function HomePage() {
               </ul>
             </div>
 
-            <figure className="relative mx-auto w-full min-w-0 max-w-[26rem] border-t border-white/10 pt-6 sm:max-w-[32rem] sm:border-0 sm:pt-0 lg:max-w-none">
+            <figure className="relative mx-auto w-full min-w-0 max-w-[26rem] border-t border-white/10 pt-6 sm:max-w-[32rem] sm:border-0 sm:pt-0 lg:ml-auto lg:mr-0 lg:max-w-[36rem]">
               <DotMap
                 byState={d.byState}
                 recentByState={d.momentum.recentByState}
@@ -86,6 +90,10 @@ export default async function HomePage() {
                 className="h-auto w-full"
               />
               <figcaption className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-[12px] text-white/55 sm:mt-2 sm:justify-end">
+                {!showCount ? (
+                  <span>{t("Every state is open. Yours could light up first.")}</span>
+                ) : (
+                <>
                 <span className="flex items-center gap-2">
                   <span className="h-1.5 w-10 rounded-full bg-gradient-to-r from-brand-400 to-brand-100" aria-hidden />
                   {t("Verified volunteers")}
@@ -94,6 +102,8 @@ export default async function HomePage() {
                   <span className="size-2 rounded-full bg-accent-500" aria-hidden />
                   {t("Most sign-ups this week")}
                 </span>
+                </>
+                )}
               </figcaption>
             </figure>
           </div>

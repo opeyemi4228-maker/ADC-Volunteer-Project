@@ -8,6 +8,7 @@ import { dotMap } from "@/lib/dotmap";
  * so ~2,700 dots cost 37 elements.
  */
 const DIM = "rgb(255 255 255 / 0.13)";
+const EMPTY = "rgb(47 177 99 / 0.42)"; // before anyone is verified, the whole country in a calm green
 const LOW = [47, 177, 99]; // brand-400
 const HIGH = [205, 238, 217]; // brand-100
 
@@ -19,6 +20,7 @@ function ramp(t) {
 export default function DotMap({ byState = {}, recentByState = {}, label, className = "" }) {
   const map = dotMap();
   const max = Math.max(1, ...Object.values(byState));
+  const empty = Object.keys(byState).length === 0;
   const hot = Object.entries(recentByState)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
@@ -28,7 +30,7 @@ export default function DotMap({ byState = {}, recentByState = {}, label, classN
   const paths = map.states.map((s, i) => ({
     ...s,
     d: map.dots.filter((d) => d[2] === i).map(([x, y]) => `M${x} ${y}h0`).join(""),
-    color: byState[s.code] ? ramp(Math.sqrt(byState[s.code] / max)) : DIM,
+    color: byState[s.code] ? ramp(Math.sqrt(byState[s.code] / max)) : empty ? EMPTY : DIM,
   }));
 
   return (

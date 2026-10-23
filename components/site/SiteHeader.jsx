@@ -63,7 +63,7 @@ export default function SiteHeader() {
       <a href="#main" className="skip-link">
         {t("Skip to content")}
       </a>
-      <div className="container-page flex h-17 items-center gap-3 xl:grid xl:grid-cols-[minmax(max-content,1fr)_auto_minmax(max-content,1fr)] xl:gap-5">
+      <div className="container-page flex h-17 items-center gap-3 lg:grid lg:grid-cols-[minmax(max-content,1fr)_auto_minmax(max-content,1fr)] lg:gap-4 xl:gap-5">
         <Link href="/" className="group flex min-w-0 shrink-0 items-center gap-3 justify-self-start rounded-lg" aria-label={t("ADC Volunteers System home")}>
           <span className="shrink-0 transition-transform duration-200 group-hover:-rotate-3 group-hover:scale-105">
             <Logo size={36} />
@@ -76,7 +76,7 @@ export default function SiteHeader() {
           </span>
         </Link>
 
-        <nav aria-label={t("Main")} className="hidden xl:block">
+        <nav aria-label={t("Main")} className="hidden lg:block">
           <ul className="flex items-center gap-0.5 rounded-full border border-line/70 bg-surface-alt p-1">
             {NAV.map((item) => {
               const active = isActive(item.href);
@@ -86,7 +86,7 @@ export default function SiteHeader() {
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     className={cx(
-                      "relative inline-flex h-9 items-center whitespace-nowrap rounded-full px-2.5 text-[14px] font-medium 2xl:px-3 transition-all duration-150",
+                      "relative inline-flex h-9 items-center whitespace-nowrap rounded-full px-2.5 text-[14px] font-medium xl:px-3.5 transition-all duration-150",
                       active
                         ? "bg-white font-semibold text-brand-800 shadow-[0_1px_3px_rgb(26_26_26/0.12),0_0_0_1px_rgb(26_26_26/0.04)]"
                         : "text-ink/70 hover:bg-white/70 hover:text-ink",
@@ -101,7 +101,7 @@ export default function SiteHeader() {
           </ul>
         </nav>
 
-        <div className="ml-auto flex items-center gap-1 justify-self-end xl:ml-0">
+        <div className="ml-auto flex items-center gap-1 justify-self-end lg:ml-0">
           <span className="hidden sm:contents">
             <LanguageSwitch compact />
           </span>
@@ -125,7 +125,7 @@ export default function SiteHeader() {
           </Link>
           <button
             type="button"
-            className="grid size-11 shrink-0 place-items-center rounded-full text-ink transition-colors hover:bg-ink/5 aria-expanded:bg-ink/5 xl:hidden"
+            className="grid size-11 shrink-0 place-items-center rounded-full text-ink transition-colors hover:bg-ink/5 aria-expanded:bg-ink/5 lg:hidden"
             aria-expanded={open}
             aria-controls="mobile-nav"
             onClick={() => setOpen((v) => !v)}
@@ -137,7 +137,7 @@ export default function SiteHeader() {
       </div>
 
       {open && (
-        <nav id="mobile-nav" aria-label={t("Main")} className="h-[calc(100dvh-72px)] overflow-y-auto border-t border-line bg-white xl:hidden">
+        <nav id="mobile-nav" aria-label={t("Main")} className="h-[calc(100dvh-72px)] overflow-y-auto border-t border-line bg-white lg:hidden">
           <div className="container-page flex min-h-full flex-col pb-8 pt-3">
             <ul className="space-y-1">
               {MOBILE_NAV.map((item, i) => {
