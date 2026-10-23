@@ -6,8 +6,8 @@ import {
 
 import { getT } from "@/lib/i18n/server";
 import { all, scalar } from "@/lib/db";
-import { publicMomentum, weeklyVerified } from "@/lib/queries";
-import { fmt, cx } from "@/components/ui";
+import { publicMomentum } from "@/lib/queries";
+import { fmt } from "@/components/ui";
 import { VOLUNTEER_ROLES } from "@/lib/options";
 import DotMap from "@/components/site/DotMap";
 import AreaFinder from "./AreaFinder";
@@ -29,7 +29,6 @@ function data() {
     volunteers: scalar("SELECT COUNT(*) FROM volunteers WHERE status = 'verified'"),
     byState: Object.fromEntries(byState.map((r) => [r.code, r.n])),
     momentum: publicMomentum(),
-    weeks: weeklyVerified(8),
   };
 }
 
@@ -43,22 +42,13 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* ── Hero: one photograph, the promise bottom-left, live figures bottom-right ── */}
-      <section id="hero" className="relative -mt-[71px] px-2 pt-2 sm:px-3 sm:pt-3">
-        <div className="relative isolate flex min-h-[max(640px,calc(100svh-0.5rem))] flex-col overflow-hidden rounded-[22px] bg-brand-950 text-white sm:min-h-[680px] sm:rounded-[28px] lg:h-[calc(100svh-1.5rem)] lg:max-h-[900px] lg:min-h-[620px]">
-          {/* Abuja, Nigerian flags at NNPC Towers (mirrored, cropped). Photo: Praise Godwin on Unsplash, Unsplash License. */}
-          <picture className="absolute inset-0 -z-10">
-            <source media="(max-width: 639px)" srcSet="/brand/hero-abuja-portrait.webp" />
-            <source media="(max-width: 1279px)" srcSet="/brand/hero-abuja-1280.webp" />
-            <img src="/brand/hero-abuja-2400.webp" alt="" fetchPriority="high" className="size-full object-cover object-[50%_0%] lg:object-[50%_30%]" />
-          </picture>
-          {/* Two quiet washes keep every word readable without hiding the flags. */}
-          <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgb(3_22_12/0.5)_0%,rgb(3_22_12/0)_24%,rgb(3_22_12/0.15)_50%,rgb(3_22_12/0.9)_100%)]" />
-          <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgb(3_22_12/0.62)_0%,rgb(3_22_12/0.18)_42%,transparent_62%)]" />
-
-          <div className="container-page mt-auto grid items-end gap-8 pb-7 pt-28 max-sm:px-4 sm:pb-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-12 lg:pb-14">
-            <div className="min-w-0 max-w-[44rem]">
-              <p className="inline-flex max-w-full items-center gap-2.5 rounded-full bg-black/30 py-1.5 pl-2.5 pr-3.5 text-[12.5px] font-medium text-white/90 ring-1 ring-white/15 backdrop-blur-md sm:text-[13px]">
+      {/* ── Hero: an inset panel, the live map as the one visual idea ─────── */}
+      <section className="overflow-x-clip px-3 pt-3 sm:px-4 sm:pt-4">
+        <div className="relative isolate overflow-hidden rounded-3xl bg-brand-950 text-white sm:rounded-[28px]">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_80%_at_85%_40%,rgb(18_166_80/0.22),transparent_70%)]" aria-hidden />
+          <div className="container-page relative grid min-w-0 items-center gap-8 pb-8 pt-8 max-sm:px-5 sm:gap-6 sm:pb-14 sm:pt-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10 lg:py-14 xl:gap-12 xl:py-20">
+            <div className="min-w-0 max-w-xl">
+              <p className="inline-flex max-w-full items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.06] py-1.5 pl-2.5 pr-3 text-[12px] font-medium text-white/85 min-[360px]:text-[12.5px] sm:pr-3.5 sm:text-[13px]">
                 <span className="relative flex size-2 shrink-0">
                   <span className="live-dot absolute inset-0 rounded-full bg-brand-300" />
                   <span className="relative size-2 rounded-full bg-brand-300" />
@@ -67,22 +57,22 @@ export default async function HomePage() {
                   ? t("{n} verified volunteers in {s} states", { n: fmt(d.volunteers), s: statesActive })
                   : t("Registration is open in all 36 states and the FCT")}
               </p>
-              <h1 className="mt-5 text-[clamp(2.4rem,8.5vw,3rem)] font-semibold leading-[1.02] tracking-[-0.04em] text-balance sm:text-[3.75rem] lg:text-[clamp(3.75rem,5.4vw,5.25rem)]">
+              <h1 className="mt-5 text-[clamp(2rem,9.6vw,2.5rem)] font-bold leading-[1.06] tracking-[-0.035em] text-balance sm:mt-6 sm:text-[3.5rem] lg:text-[3.4rem] xl:text-[4.1rem]">
                 {t("Nigeria is organising, ward by ward.")}
               </h1>
-              <p className="mt-4 max-w-[36rem] text-pretty text-[16px] leading-[1.6] text-white/80 sm:mt-5 sm:text-[18px]">
+              <p className="mt-4 max-w-[34rem] text-pretty text-[16px] leading-[1.6] text-white/75 sm:mt-6 sm:text-[18px] sm:leading-[1.65] lg:mt-5 lg:text-[17px] xl:mt-6 xl:text-[18px]">
                 {t("Join as a volunteer and you'll be linked to your ward and polling unit, so the coordinators nearest you can reach you.")}
               </p>
-              <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
-                <Link href="/volunteer" className="group inline-flex h-13 items-center justify-center gap-2 rounded-full bg-accent-500 pl-6 pr-5 text-[16px] font-semibold text-ink shadow-[0_12px_30px_-12px_rgb(244_115_33/0.8)] transition-colors hover:bg-[#ff8a3d]">
+              <div className="mt-7 flex flex-col items-stretch gap-3 sm:mt-9 lg:mt-8 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-7 sm:gap-y-4">
+                <Link href="/volunteer" className="btn btn-lg w-full justify-center bg-accent-500 text-ink hover:bg-[#ff8a3d] sm:w-auto">
                   {t("Join as a volunteer")}
-                  <ArrowRight aria-hidden className="size-5 transition-transform duration-200 group-hover:translate-x-0.5" />
+                  <ArrowRight aria-hidden className="size-5" />
                 </Link>
-                <Link href="/#ways-to-help" className="inline-flex h-13 items-center justify-center rounded-full px-5 text-[16px] font-semibold text-white ring-1 ring-white/30 backdrop-blur-sm transition-colors hover:bg-white/10 sm:ring-0 sm:px-2 sm:underline sm:decoration-white/40 sm:underline-offset-[6px] sm:hover:bg-transparent sm:hover:decoration-white">
+                <Link href="/#ways-to-help" className="inline-flex min-h-11 items-center justify-center text-[16px] font-semibold text-white underline decoration-white/35 underline-offset-[6px] hover:decoration-white sm:justify-start">
                   {t("See the ways to help")}
                 </Link>
               </div>
-              <ul className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[13px] text-white/70 sm:text-[14px]">
+              <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[13px] text-white/65 sm:mt-7 sm:justify-start sm:gap-x-5 sm:text-[14px]">
                 {[t("Free"), t("About 3 minutes"), t("Works on any phone")].map((x) => (
                   <li key={x} className="flex items-center gap-1.5 whitespace-nowrap">
                     <Check aria-hidden className="size-3.5 text-brand-300" strokeWidth={3} />
@@ -92,30 +82,18 @@ export default async function HomePage() {
               </ul>
             </div>
 
-            <LiveCard t={t} showCount={showCount} total={d.volunteers} weeks={d.weeks} thisWeek={d.momentum.thisWeek} />
-          </div>
-        </div>
-      </section>
-
-      {/* ── Across Nigeria: the live map beside this week's busiest LGAs ─────── */}
-      {d.momentum.lgas.length > 0 && (
-        <section className="container-page reveal pt-20 sm:pt-28">
-          <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-            <div className="max-w-2xl">
-              <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-brand-700">{t("This week")}</p>
-              <h2 className="mt-3 text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-balance sm:text-[2.75rem]">{t("{n} new verified volunteers across Nigeria", { n: fmt(d.momentum.thisWeek) })}</h2>
-            </div>
-          </div>
-          <div className="mt-10 grid gap-5 lg:grid-cols-[1.25fr_1fr]">
-            <figure className="relative overflow-hidden rounded-[28px] bg-brand-950 p-6 text-white sm:p-10">
-              <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_70%_at_70%_40%,rgb(18_166_80/0.25),transparent_70%)]" />
+            <figure className="relative mx-auto w-full min-w-0 max-w-[26rem] border-t border-white/10 pt-6 sm:max-w-[32rem] sm:border-0 sm:pt-0 lg:ml-auto lg:mr-0 lg:max-w-[36rem]">
               <DotMap
                 byState={d.byState}
                 recentByState={d.momentum.recentByState}
                 label={t("Map of Nigeria: states light up by verified volunteers; pulses mark the most sign-ups this week")}
-                className="relative h-auto w-full"
+                className="h-auto w-full"
               />
-              <figcaption className="relative mt-4 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[12.5px] text-white/65">
+              <figcaption className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-[12px] text-white/55 sm:mt-2 sm:justify-end">
+                {!showCount ? (
+                  <span>{t("Every state is open. Yours could light up first.")}</span>
+                ) : (
+                <>
                 <span className="flex items-center gap-2">
                   <span className="h-1.5 w-10 rounded-full bg-gradient-to-r from-brand-400 to-brand-100" aria-hidden />
                   {t("Verified volunteers")}
@@ -124,20 +102,30 @@ export default async function HomePage() {
                   <span className="size-2 rounded-full bg-accent-500" aria-hidden />
                   {t("Most sign-ups this week")}
                 </span>
+                </>
+                )}
               </figcaption>
             </figure>
-            <ul className="grid grid-cols-2 gap-px self-stretch overflow-hidden rounded-[28px] border border-line bg-line">
-              {d.momentum.lgas.map((l) => (
-                <li key={l.lga} className="flex min-h-36 flex-col justify-between gap-6 bg-white p-5 sm:p-6">
-                  <p className="num text-[30px] font-bold leading-none tracking-tight text-brand-800">+{fmt(l.recent)}</p>
-                  <div>
-                    <p className="text-[15px] font-semibold leading-snug">{l.lgaName}</p>
-                    <p className="text-[13px] text-ink-muted">{l.state === "FCT" ? "FCT" : l.stateName}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
           </div>
+        </div>
+      </section>
+
+      {/* ── This week: aggregate, privacy-safe momentum ───────────────────── */}
+      {d.momentum.lgas.length > 0 && (
+        <section className="container-page reveal pt-16 sm:pt-20">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+            <h2 className="text-[13px] font-semibold uppercase tracking-[0.14em] text-ink-muted">{t("This week")}</h2>
+            <p className="text-[14px] text-ink-muted">{t("{n} new verified volunteers across Nigeria", { n: fmt(d.momentum.thisWeek) })}</p>
+          </div>
+          <ul className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-3 lg:grid-cols-6">
+            {d.momentum.lgas.map((l) => (
+              <li key={l.lga} className="bg-white p-5 max-sm:nth-[n+5]:hidden">
+                <p className="num text-[28px] font-bold leading-none tracking-tight text-brand-800">+{fmt(l.recent)}</p>
+                <p className="mt-3 text-[14px] font-semibold leading-snug">{l.lgaName}</p>
+                <p className="text-[13px] text-ink-muted">{l.state === "FCT" ? "FCT" : l.stateName}</p>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 
@@ -177,11 +165,9 @@ export default async function HomePage() {
             <h2 className="text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-balance sm:text-[2.75rem]">{t("What would you like to volunteer for?")}</h2>
             <p className="mt-4 text-[18px] leading-[1.6] text-ink-muted">{t("Pick one to start. You can choose up to three when you register.")}</p>
           </div>
-          {showCount && (
-            <p className="text-[15px] text-ink-muted">
-              <span className="num text-[28px] font-bold tracking-tight text-brand-800">{fmt(d.volunteers)}</span> {t("verified volunteers so far, in {s} states", { s: statesActive })}
-            </p>
-          )}
+          <p className="text-[15px] text-ink-muted">
+            <span className="num text-[28px] font-bold tracking-tight text-brand-800">{fmt(d.volunteers)}</span> {t("verified volunteers so far, in {s} states", { s: statesActive })}
+          </p>
         </div>
         <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {VOLUNTEER_ROLES.map((r) => {
@@ -256,8 +242,8 @@ export default async function HomePage() {
 /** One promise: icon, bold title, one sentence. */
 function Promise({ icon: Icon, title, children }) {
   return (
-    <div className="rounded-3xl bg-surface-alt p-7 sm:p-8">
-      <span className="grid size-12 place-items-center rounded-full bg-white text-brand-700 shadow-[0_1px_2px_rgb(26_26_26/0.08)]">
+    <div className="rounded-3xl bg-white p-7 ring-1 ring-line sm:p-8">
+      <span className="grid size-12 place-items-center rounded-full bg-brand-50 text-brand-700">
         <Icon aria-hidden className="size-6" strokeWidth={2} />
       </span>
       <h3 className="mt-6 text-[1.375rem] font-bold leading-tight tracking-[-0.02em]">{title}</h3>
@@ -280,53 +266,3 @@ const ROLE_ICONS = {
   security_liaison: ShieldCheck,
   fundraising: HandCoins,
 };
-
-/**
- * The white card floating bottom-right of the hero: the live national figure
- * and eight weeks of verified sign-ups as two-tone bars. Before there is
- * anything to count it says what is true instead: every state is open.
- */
-function LiveCard({ t, showCount, total, weeks, thisWeek }) {
-  const max = Math.max(1, ...weeks);
-  return (
-    <div className="hidden w-[19.5rem] shrink-0 rounded-[22px] bg-white p-5 text-ink shadow-[0_30px_60px_-24px_rgb(0_0_0/0.55)] ring-1 ring-black/5 md:block lg:w-[21rem]">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-[17px] font-bold tracking-tight">{showCount ? t("Volunteers") : t("Open nationwide")}</p>
-        {showCount && thisWeek > 0 && (
-          <span className="num rounded-full bg-brand-700 px-2.5 py-1 text-[12px] font-semibold text-white">+{fmt(thisWeek)} {t("this week")}</span>
-        )}
-      </div>
-      {showCount ? (
-        <>
-          <p className="num mt-3 text-[40px] font-bold leading-none tracking-[-0.03em] text-brand-900">{fmt(total)}</p>
-          <p className="mt-1 text-[13px] text-ink-muted">{t("verified across Nigeria")}</p>
-          <div className="mt-5 flex h-24 items-end gap-2" aria-hidden>
-            {weeks.map((n, i) => {
-              const h = Math.max(10, Math.round((n / max) * 100));
-              const last = i === weeks.length - 1;
-              return (
-                <div key={i} className="flex h-full flex-1 flex-col justify-end gap-1">
-                  <div className={cx("rounded-[5px]", last ? "bg-accent-500" : "bg-brand-800")} style={{ height: `${h * 0.62}%` }} />
-                  <div className={cx("rounded-[5px]", last ? "bg-accent-300" : "bg-brand-200")} style={{ height: `${h * 0.38}%` }} />
-                </div>
-              );
-            })}
-          </div>
-          <p className="mt-3 flex justify-between text-[11.5px] text-ink-muted">
-            <span>{t("8 weeks ago")}</span>
-            <span>{t("This week")}</span>
-          </p>
-        </>
-      ) : (
-        <>
-          <p className="num mt-3 text-[40px] font-bold leading-none tracking-[-0.03em] text-brand-900">37</p>
-          <p className="mt-1 text-[13px] text-ink-muted">{t("36 states and the FCT are open for registration")}</p>
-          <Link href="/volunteer" className="mt-5 inline-flex items-center gap-1.5 text-[14px] font-semibold text-brand-700 hover:text-brand-900">
-            {t("Be the first in your ward")}
-            <ArrowRight aria-hidden className="size-4" />
-          </Link>
-        </>
-      )}
-    </div>
-  );
-}
