@@ -20,7 +20,12 @@ const NONE = "#eceeed";
 
 const cache = new Map();
 function loadShapes(file) {
-  if (!cache.has(file)) cache.set(file, fetch(`/geo/map/${file}`).then((r) => r.json()).catch(() => null));
+  if (!cache.has(file)) {
+    cache.set(file, fetch(`/geo/map/${file}`).then((r) => (r.ok ? r.json() : null)).catch(() => null).then((d) => {
+      if (!d) cache.delete(file); // a failed load is retried next time, not remembered
+      return d;
+    }));
+  }
   return cache.get(file);
 }
 
@@ -28,14 +33,19 @@ const norm = (s) => String(s ?? "").toLowerCase().replace(/[^a-z]/g, "");
 
 export default function CoverageMap({ level, stateCode, values, metricLabel, format = "number", valueKey = "value", hrefBase, t = (s) => s }) {
   const router = useRouter();
-  const [shapes, setShapes] = useState(null);
+  const file = level === "state" ? "states.json" : `${stateCode}.json`;
+  // The outlines are kept with the file they came from. When the view changes
+  // (Nigeria -> a state), the old file's shapes are ignored until the new ones
+  // arrive, instead of being read as if they were the new level.
+  const [loaded, setLoaded] = useState({ file: null, shapes: null });
+  const shapes = loaded.file === file ? loaded.shapes : null;
   const [hover, setHover] = useState(null);
 
   useEffect(() => {
     let live = true;
-    loadShapes(level === "state" ? "states.json" : `${stateCode}.json`).then((d) => live && setShapes(d));
+    loadShapes(file).then((d) => live && setLoaded({ file, shapes: d }));
     return () => { live = false; };
-  }, [level, stateCode]);
+  }, [file]);
 
   const byKey = useMemo(() => {
     const m = new Map();
@@ -63,7 +73,7 @@ export default function CoverageMap({ level, stateCode, values, metricLabel, for
 
   const units = useMemo(() => {
     if (!shapes) return [];
-    const list = level === "state" ? shapes.states : shapes.lgas;
+    const list = (level === "state" ? shapes.states : shapes.lgas) ?? [];
     return list
       .map((s) => ({ ...s, data: byKey.get(s.code) ?? byKey.get(norm(s.name)) }))
       .filter((s) => level !== "state" || s.data);
