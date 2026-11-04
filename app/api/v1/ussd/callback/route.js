@@ -19,7 +19,7 @@ export async function POST(request) {
   if (!phone) return reply("END This service is for Nigerian mobile numbers.");
 
   const text = String(f.text ?? "");
-  const out = text === "" ? openSession("ussd", phone) : answer("ussd", phone, text.split("*").at(-1));
+  const out = text === "" ? await openSession("ussd", phone) : await answer("ussd", phone, text.split("*").at(-1));
   return reply(`${out.end ? "END" : "CON"} ${out.text}`);
 }
 

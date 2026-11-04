@@ -20,7 +20,7 @@ export default async function ElectionPage({ searchParams }) {
   if (!viewer.powers.includes("election")) redirect("/workspace");
   const sp = await searchParams;
   const tab = ["roster", "situation", "incidents"].includes(sp.tab) ? sp.tab : "roster";
-  const live = isLive();
+  const live = await isLive();
   const area = resolveArea(viewer, sp.ward ?? sp.lga);
   const ward = area.type === "ward" ? area.code : null;
   const lga = area.type === "lga" ? area.code : ward ? ward.slice(0, 7) : null;
@@ -33,7 +33,7 @@ export default async function ElectionPage({ searchParams }) {
     <>
       <PageHeader
         title="Election day"
-        description={getSetting("election_name", "Election day")}
+        description={await getSetting("election_name", "Election day")}
         actions={<span className={`rounded-md border px-2.5 py-1 text-[14px] font-semibold ${live ? "border-danger/30 bg-danger-bg text-danger" : "border-line text-ink-muted"}`}>{live ? "Live: check-in and results are open" : "Planning: check-in and results are closed"}</span>}
       />
       {!live && <Alert tone="info" className="mb-6" title="Plan the roster now">Agents can check in and send results only after the national admin switches election day on (Settings). Rehearse with a few units before the day.</Alert>}
@@ -92,9 +92,9 @@ export default async function ElectionPage({ searchParams }) {
   );
 }
 
-function Roster({ viewer, ward }) {
-  const rows = roster(viewer, ward);
-  const people = eligibleAgents(viewer, ward);
+async function Roster({ viewer, ward }) {
+  const rows = await roster(viewer, ward);
+  const people = await eligibleAgents(viewer, ward);
   const options = people.map((p) => ({ id: p.id, label: `${p.first_name} ${p.surname}${p.status !== "verified" ? " (unverified)" : ""}${p.has_smartphone ? "" : " · no smartphone"}${p.vote_pu_code ? ` · votes at ${p.vote_pu_code.slice(-3)}` : ""}`, assigned: p.assigned, pu: p.vote_pu_code }));
   const primaries = rows.filter((r) => r.primary).length;
   const backups = rows.filter((r) => r.backup).length;
@@ -125,8 +125,8 @@ function Roster({ viewer, ward }) {
   );
 }
 
-function Situation({ viewer }) {
-  const s = situation(viewer);
+async function Situation({ viewer }) {
+  const s = await situation(viewer);
   const total = Object.values(s.totals).reduce((a, b) => a + b, 0);
   return (
     <>
@@ -182,8 +182,8 @@ function Situation({ viewer }) {
   );
 }
 
-function Incidents({ viewer }) {
-  const list = incidentsIn(viewer);
+async function Incidents({ viewer }) {
+  const list = await incidentsIn(viewer);
   if (!list.length) return <EmptyState title="No incidents reported">Incidents agents report on election day appear here, most serious first.</EmptyState>;
   return (
     <ul className="divide-y divide-line border-y border-line">

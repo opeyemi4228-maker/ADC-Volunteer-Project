@@ -17,22 +17,22 @@ export default async function MediaPage({ searchParams }) {
   const status = sp.status ?? (viewer.powers.includes("moderate_media") ? "pending" : "approved");
   const page = Math.max(1, Number(sp.page) || 1);
   const s = scopeSql(viewer, "media", "m");
-  const where = `${s.sql} AND m.moderation_status = :status AND (:state = '' OR m.state_code = :state) AND (:kind = '' OR m.kind = :kind)
-    AND (:q = '' OR m.event_name LIKE :ql OR g.name LIKE :ql OR m.caption LIKE :ql)`;
+  const where = `${s.sql} AND m.moderation_status = :status AND (:state::text = '' OR m.state_code = :state) AND (:kind::text = '' OR m.kind = :kind)
+    AND (:q::text = '' OR m.event_name ILIKE :ql OR g.name ILIKE :ql OR m.caption ILIKE :ql)`;
   const params = { ...s.params, status, state: sp.state ?? "", kind: sp.kind ?? "", q: sp.q ?? "", ql: `%${sp.q ?? ""}%` };
-  const items = all(
+  const items = (await all(
     `SELECT m.*, g.name AS group_name FROM media_items m LEFT JOIN support_groups g ON g.id = m.group_id WHERE ${where}
      ORDER BY ${status === "pending" ? "m.created_at ASC" : "m.event_date DESC"} LIMIT ${PAGE} OFFSET ${(page - 1) * PAGE}`,
     params,
-  ).map((m) => ({ ...m, place: placeLabel(m) }));
-  const total = scalar(`SELECT COUNT(*) FROM media_items m LEFT JOIN support_groups g ON g.id = m.group_id WHERE ${where}`, params);
-  const count = (st) => scalar(`SELECT COUNT(*) FROM media_items m WHERE ${s.sql} AND m.moderation_status = :st`, { ...s.params, st });
+  )).map((m) => ({ ...m, place: placeLabel(m) }));
+  const total = await scalar(`SELECT COUNT(*) FROM media_items m LEFT JOIN support_groups g ON g.id = m.group_id WHERE ${where}`, params);
+  const count = async (st) => await scalar(`SELECT COUNT(*) FROM media_items m WHERE ${s.sql} AND m.moderation_status = :st`, { ...s.params, st });
 
   const tabs = [
-    viewer.powers.includes("moderate_media") && { key: "pending", label: "Pending review", count: count("pending") },
-    { key: "approved", label: "Approved", count: count("approved") },
-    { key: "publicity", label: "Approved for publicity", count: count("publicity") },
-    { key: "rejected", label: "Rejected", count: count("rejected") },
+    viewer.powers.includes("moderate_media") && { key: "pending", label: "Pending review", count: await count("pending") },
+    { key: "approved", label: "Approved", count: await count("approved") },
+    { key: "publicity", label: "Approved for publicity", count: await count("publicity") },
+    { key: "rejected", label: "Rejected", count: await count("rejected") },
   ].filter(Boolean).map((t) => ({ ...t, href: withParams("/workspace/media", { ...sp, page: undefined }, { status: t.key }) }));
 
   return (

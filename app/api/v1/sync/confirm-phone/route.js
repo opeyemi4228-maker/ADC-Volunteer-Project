@@ -13,7 +13,7 @@ export async function POST(request) {
   if (denied) return denied;
   const phone = normalizePhone((await body(request)).phone);
   if (!phone) return fail(422, "Enter a Nigerian mobile number.");
-  if (volunteerByPhone(phone)) return fail(409, "This number is already registered.");
+  if (await volunteerByPhone(phone)) return fail(409, "This number is already registered.");
   const r = await requestOtp(phone, "agent_confirm");
   if (!r.ok) return fail(429, r.error);
   return ok({ sent: true, devCode: r.devCode });

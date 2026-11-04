@@ -6,5 +6,5 @@ export async function POST(request) {
   const { viewer, denied } = await requirePower("message");
   if (denied) return denied;
   const d = await body(request);
-  return ok(preview(viewer, d.audience ?? {}, String(d.body ?? ""), d.channel ?? "sms"));
+  return ok(await preview(viewer, d.audience ?? {}, String(d.body ?? ""), d.channel ?? "sms"));
 }

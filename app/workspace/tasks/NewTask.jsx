@@ -7,13 +7,15 @@ import { useForm, TextField, SelectField } from "@/components/forms/controls";
 import { post } from "@/components/workspace/actions";
 import { useRouter } from "next/navigation";
 
-export default function NewTask({ areas, groups }) {
+import { VOLUNTEER_ROLES } from "@/lib/options";
+
+/** Set a task for volunteers in an area, optionally only those who offered one role. */
+export default function NewTask({ areas }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
-  const form = useForm({ assign: "area", area_code: areas[0]?.value ?? "", group_ids: [] });
-  const [filter, setFilter] = useState("");
+  const form = useForm({ assign: "area", area_code: areas[0]?.value ?? "", role: "" });
 
   if (!open) {
     return (
@@ -24,15 +26,12 @@ export default function NewTask({ areas, groups }) {
     );
   }
 
-  const picked = new Set(form.get("group_ids"));
-  const shown = groups.filter((g) => !filter || g.name.toLowerCase().includes(filter.toLowerCase())).slice(0, 60);
-
   async function submit(e) {
     e.preventDefault();
     setBusy(true);
     try {
-      const out = await post("/api/v1/tasks", form.data);
-      setMsg("Task created.");
+      const out = await post("/api/v1/tasks", { ...form.data, role: form.data.role || null });
+      setMsg(`Task created. ${new Intl.NumberFormat("en-NG").format(out.reach ?? 0)} volunteers can see it now.`);
       setOpen(false);
       router.refresh();
     } catch (err) {
@@ -52,8 +51,11 @@ export default function NewTask({ areas, groups }) {
         <TextField form={form} path="target_value" label="Target" optional type="number" min="1" inputMode="numeric" />
         <TextField form={form} path="target_unit" label="Unit" optional placeholder="households, people…" maxLength={40} />
       </div>
-      <SelectField form={form} path="area_code" label="Area" options={areas} />
-      <p className="t-help">Coordinators and volunteers in this area see the task.</p>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <SelectField form={form} path="area_code" label="Area" options={areas} />
+        <SelectField form={form} path="role" label="Which volunteers" optional options={VOLUNTEER_ROLES.map((r) => ({ value: r.value, label: `${r.label}s only` }))} placeholder="Everyone in the area" />
+      </div>
+      <p className="t-help">Every volunteer in the area (or with that role) sees the task on their dashboard and can report progress with photos.</p>
       <div className="flex gap-2">
         <button type="submit" className="btn btn-primary" disabled={busy}>{busy && <Loader2 aria-hidden className="size-4 animate-spin" />} Create task</button>
         <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)}>Cancel</button>

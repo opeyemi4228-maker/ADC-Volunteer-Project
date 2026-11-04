@@ -16,7 +16,8 @@ import { api, getIn, setIn } from "./api";
  * screen is checked before moving on, progress is saved on the device, and a
  * problem found on submit takes the person back to the screen that owns it.
  *
- * Screen:  { id, title, help?, when?(data), items: [Item], server?: step }
+ * Screen:  { id, title, help?, notice?, when?(data), items: [Item], server?: step }
+ *          notice: a highlighted rule the person must not miss (e.g. a limit)
  * Item:    { path, label, kind, optional?, when?(data), validate?(value, data),
  *            options? | load?(data) + depends?(data), hint?, placeholder?, render?(ctx) }
  * Kinds:   text tel email password choice multi cards select date month check custom
@@ -145,6 +146,12 @@ export default function QuestionFlow({ flow, screens, initial, onSubmit, submitL
             {typeof screen.title === "function" ? screen.title(data, t) : t(screen.title)}
           </h2>
           {screen.help && <p className="mt-2 text-[16px] leading-relaxed text-ink-muted">{t(screen.help)}</p>}
+          {screen.notice && (
+            <p role="note" className="mt-4 flex items-start gap-2.5 rounded-xl border border-brand-700/30 bg-brand-50 px-4 py-3 text-[15px] font-semibold leading-snug text-brand-800">
+              <span aria-hidden className="grid size-6 shrink-0 place-items-center rounded-full bg-brand-700 text-[13px] font-bold text-white">!</span>
+              <span>{t(screen.notice)}</span>
+            </p>
+          )}
 
           <div className="mt-7 grid gap-6 sm:grid-cols-2">
             {items.map((item, i) => (
@@ -316,8 +323,8 @@ function Cards({ item, value, onChange, t }) {
   return (
     <div className="space-y-3">
       {item.max && (
-        <p className={cx("text-[14px] font-semibold", full ? "text-brand-800" : "text-ink-muted")} aria-live="polite">
-          {full ? t("{n} of {max} chosen. Untick one to choose another.", { n: picked.size, max: item.max }) : t("{n} of {max} chosen", { n: picked.size, max: item.max })}
+        <p className={cx("inline-flex rounded-full px-3 py-1 text-[14px] font-semibold", full ? "bg-brand-700 text-white" : "bg-surface-alt text-ink")} aria-live="polite">
+          {full ? t("{n} of {max} chosen. Untick one to choose another.", { n: picked.size, max: item.max }) : t("{n} of {max} chosen (maximum {max})", { n: picked.size, max: item.max })}
         </p>
       )}
     <div role="group" className="grid gap-2.5 sm:grid-cols-2">

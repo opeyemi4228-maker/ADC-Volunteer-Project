@@ -20,7 +20,7 @@ async function ctx(params) {
 export async function GET(_request, { params }) {
   const { flow, reg, error } = await ctx(params);
   if (error) return error;
-  const d = one("SELECT step, data, updated_at FROM drafts WHERE owner_hash = :h AND flow = :f", { h: reg.phoneHash, f: flow });
+  const d = await one("SELECT step, data, updated_at FROM drafts WHERE owner_hash = :h AND flow = :f", { h: reg.phoneHash, f: flow });
   return ok({ draft: d ? { step: d.step, data: JSON.parse(d.data), updatedAt: d.updated_at } : null });
 }
 
@@ -30,7 +30,7 @@ export async function PUT(request, { params }) {
   const { step, data } = await body(request);
   const json = JSON.stringify(data ?? {});
   if (json.length > 200_000) return fail(413, "The form is too large to save.");
-  run(
+  await run(
     `INSERT INTO drafts (owner_hash, flow, step, data, updated_at) VALUES (:h, :f, :s, :d, :now)
      ON CONFLICT(owner_hash, flow) DO UPDATE SET step = :s, data = :d, updated_at = :now`,
     { h: reg.phoneHash, f: flow, s: Math.max(1, Math.min(9, Number(step) || 1)), d: json, now: nowIso() },
@@ -41,6 +41,6 @@ export async function PUT(request, { params }) {
 export async function DELETE(_request, { params }) {
   const { flow, reg, error } = await ctx(params);
   if (error) return error;
-  run("DELETE FROM drafts WHERE owner_hash = :h AND flow = :f", { h: reg.phoneHash, f: flow });
+  await run("DELETE FROM drafts WHERE owner_hash = :h AND flow = :f", { h: reg.phoneHash, f: flow });
   return ok({ deleted: true });
 }

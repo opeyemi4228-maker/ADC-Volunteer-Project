@@ -7,8 +7,8 @@ import { Alert, Field } from "@/components/ui";
 import { api } from "@/components/forms/api";
 
 /** Change password, folded away until asked for. */
-export default function ChangePassword() {
-  const [open, setOpen] = useState(false);
+export default function ChangePassword({ defaultOpen = false }) {
+  const [open, setOpen] = useState(defaultOpen);
   const [current, setCurrent] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -23,7 +23,7 @@ export default function ChangePassword() {
     setMsg({ tone: "success", text: "Your password has been changed." });
     setCurrent("");
     setPassword("");
-    setOpen(false);
+    setOpen(defaultOpen);
   }
 
   return (
@@ -43,7 +43,7 @@ export default function ChangePassword() {
           </Field>
           <div className="flex flex-wrap gap-3 sm:col-span-2">
             <button type="submit" className="btn btn-primary" disabled={busy}>{busy && <Loader2 aria-hidden className="size-5 animate-spin" />} Save new password</button>
-            <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)}>Cancel</button>
+            {!defaultOpen && <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)}>Cancel</button>}
           </div>
         </form>
       )}

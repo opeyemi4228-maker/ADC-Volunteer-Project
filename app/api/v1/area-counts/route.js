@@ -19,9 +19,9 @@ const COLS = {
   ward: { volunteer: "vote_ward_code", where: [null, "vote_ward_code"] },
 };
 
-function counts(col, whereCol, code, what = "COUNT(*)") {
+async function counts(col, whereCol, code, what = "COUNT(*)") {
   const where = whereCol ? `AND ${whereCol} = :code` : "";
-  const rows = all(`SELECT ${col} AS k, ${what} AS n FROM volunteers WHERE status = 'verified' ${where} GROUP BY ${col}`, whereCol ? { code } : {});
+  const rows = await all(`SELECT ${col} AS k, ${what} AS n FROM volunteers WHERE status = 'verified' ${where} GROUP BY ${col}`, whereCol ? { code } : {});
   return Object.fromEntries(rows.map((r) => [r.k, r.n]));
 }
 
@@ -41,8 +41,8 @@ export async function GET(request) {
   if (type !== "national" && areaName(code) === code) return fail(404, "Unknown area.");
 
   const c = COLS[type];
-  const volunteers = counts(c.volunteer, c.where?.[1], code);
-  const pus = counts(c.volunteer, c.where?.[1], code, "COUNT(DISTINCT vote_pu_code)");
+  const volunteers = await counts(c.volunteer, c.where?.[1], code);
+  const pus = await counts(c.volunteer, c.where?.[1], code, "COUNT(DISTINCT vote_pu_code)");
   const children =
     type === "ward"
       ? [{ code, name: areaName(code) }]

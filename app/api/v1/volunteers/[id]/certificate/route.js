@@ -12,11 +12,11 @@ export async function GET(_request, { params }) {
   const { id } = await params;
   const own = viewer.roles.some((r) => r.role === "volunteer" && r.area_code === id);
   const s = scopeSql(viewer, "volunteer", "v");
-  const v = one(`SELECT v.id, v.status FROM volunteers v WHERE v.id = :vid AND (${own ? "1" : s.sql})`, { vid: id, ...s.params });
+  const v = await one(`SELECT v.id, v.status FROM volunteers v WHERE v.id = :vid AND (${own ? "TRUE" : s.sql})`, { vid: id, ...s.params });
   if (!v) return fail(404, "Volunteer not found.");
   if (v.status !== "verified") return fail(409, "The certificate is available once you have been verified.");
   const cert = await buildCertificate(v.id);
-  audit(viewer, "certificate_downloaded", "volunteer", v.id, { number: cert.number }, await clientIp());
+  await audit(viewer, "certificate_downloaded", "volunteer", v.id, { number: cert.number }, await clientIp());
   return new Response(cert.bytes, {
     headers: { "Content-Type": "application/pdf", "Content-Disposition": `attachment; filename="${cert.filename}"`, "Cache-Control": "private, no-store" },
   });

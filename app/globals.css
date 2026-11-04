@@ -32,6 +32,7 @@
   --color-line: #dfe3e1;
   --color-surface: #ffffff;
   --color-surface-alt: #f3f5f4;
+  --color-canvas: #f5f7f6; /* workspace background behind cards */
   --color-paper: #f7f5ef; /* warm off-white for the public site */
   --color-paper-deep: #efece3;
 

@@ -8,24 +8,28 @@ import { Loader2, LogIn, ShieldCheck } from "lucide-react";
 import { Alert, Card, Field } from "@/components/ui";
 import { useT } from "@/lib/i18n/client";
 import { api } from "@/components/forms/api";
+import ScreenCode from "@/components/forms/ScreenCode";
 
-export default function SignInForm({ demo }) {
+export default function SignInForm({ demo, initialLogin = "" }) {
   const t = useT();
   const router = useRouter();
-  const [login, setLogin] = useState("");
+  const [login, setLogin] = useState(initialLogin);
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [sent, setSent] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  const [member, setMember] = useState(false);
 
   async function first(e) {
     e.preventDefault();
     setBusy(true);
     setError(null);
+    setMember(false);
     const r = await api("/auth/signin", { method: "POST", body: { login, password } });
     if (!r.ok) {
       setBusy(false);
+      if (r.data.member) return setMember(true);
       return setError(r.error);
     }
     // Campaign coordinators confirm a code sent to their phone.
@@ -55,6 +59,14 @@ export default function SignInForm({ demo }) {
   return (
     <div className="space-y-6">
       <Card className="p-5 sm:p-8">
+        {member && (
+          <Alert tone="info" title={t("This is a volunteer account")} className="mb-5">
+            <p>{t("Volunteers don't use a password. Sign in with your phone number and a one-time code.")}</p>
+            <Link href={`/login${login.includes("@") ? "" : `?phone=${encodeURIComponent(login)}`}`} className="btn btn-primary mt-3 h-10 min-h-10 px-4 text-[14px]">
+              {t("Continue to volunteer sign in")}
+            </Link>
+          </Alert>
+        )}
         {error && (
           <Alert tone="danger" className="mb-5">
             {t(error)}
@@ -64,12 +76,12 @@ export default function SignInForm({ demo }) {
           <form onSubmit={first} className="space-y-5">
             <Field id="si-login" label={t("Email or phone number")}>
               {(aria) => (
-                <input {...aria} type="text" inputMode="email" autoComplete="username" autoCapitalize="none" spellCheck={false} className="input" placeholder="name@example.com" value={login} onChange={(e) => setLogin(e.target.value)} required />
+                <input {...aria} type="text" inputMode="email" autoComplete="username" autoCapitalize="none" spellCheck={false} className="input" placeholder="name@example.com" value={login} onChange={(e) => { setLogin(e.target.value); setMember(false); }} required />
               )}
             </Field>
             <Field id="si-password" label={t("Password")}>
               {(aria) => (
-                <input {...aria} type="password" autoComplete="current-password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                <input {...aria} type="password" autoComplete="current-password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} autoFocus={Boolean(initialLogin)} required />
               )}
             </Field>
             <button type="submit" className="btn btn-primary w-full" disabled={busy}>
@@ -82,13 +94,9 @@ export default function SignInForm({ demo }) {
           </form>
         ) : (
           <form onSubmit={second} className="space-y-5">
-            <Alert tone="info" title={t("Check your phone")}>
-              {t("We sent a 6-digit code to the number ending {n}.", { n: sent.masked })}
-              {sent.devCode && (
-                <p className="mt-1 text-[13px]">
-                  {t("Development mode: your code is")} <strong className="font-mono">{sent.devCode}</strong>
-                </p>
-              )}
+            <Alert tone="info" title={sent.devCode ? t("Your code") : t("Check your phone")}>
+              {!sent.devCode && t("We sent a 6-digit code to the number ending {n}.", { n: sent.masked })}
+              <ScreenCode code={sent.devCode} onUse={setCode} />
             </Alert>
             <Field id="si-code" label={t("6-digit code")}>
               {(aria) => (

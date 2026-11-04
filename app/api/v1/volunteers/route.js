@@ -10,28 +10,28 @@ import { ok, fail, body } from "@/lib/http";
 
 /**
  * POST /api/v1/volunteers: register a volunteer (Flow B, fast version).
- * No phone code: the number is typed in step 1 and must be unique. The
- * password chosen on the last screen opens their volunteer dashboard. The ward
+ * No phone code: the number is typed in step 1 and must be unique. There is
+ * no password: they sign in later with a one-time code sent to that number. The ward
  * coordinator confirms it by calling before verifying, so the record starts
  * as "phone not confirmed".
  */
 export async function POST(request) {
   const ip = await clientIp();
-  const recent = scalar("SELECT COUNT(*) FROM audit_log WHERE action = 'volunteer_registered' AND ip = :ip AND timestamp > datetime('now', '-1 hour')", { ip });
+  const recent = await scalar(`SELECT COUNT(*) FROM audit_log WHERE action = 'volunteer_registered' AND ip = :ip AND "timestamp" > now() - interval '1 hour'`, { ip });
   if (recent >= 30 && ip !== "local") return fail(429, "Too many registrations from this connection. Try again in an hour.");
 
   const d = await body(request);
-  const errors = validateVolunteer(d, { channel: "web" });
+  const errors = await validateVolunteer(d, { channel: "web" });
   if (Object.keys(errors).length) {
     const dup = errors["about.phone"]?.includes("already registered");
     return fail(dup ? 409 : 422, dup ? errors["about.phone"] : "Some answers need attention.", { errors, duplicatePhone: dup || undefined });
   }
   const phone = normalizePhone(d.about.phone);
-  const v = createVolunteer(d, { phone, channel: "web", phoneVerified: false });
+  const v = await createVolunteer(d, { phone, channel: "web", phoneVerified: false });
   if (v.error) return fail(409, v.error, { duplicatePhone: true, errors: { "about.phone": v.error } });
   // Their sign-in for the volunteer dashboard (ID card and certificate).
-  createVolunteerAccount(v.id, { name: `${v.firstName} ${String(d.about.surname ?? "").trim()}`.trim(), phone, email: d.about.email, password: d.account.password });
-  audit({ name: "Registrant" }, "volunteer_registered", "volunteer", v.id, { publicId: v.publicId }, ip);
+  await createVolunteerAccount(v.id, { name: `${v.firstName} ${String(d.about.surname ?? "").trim()}`.trim(), phone, email: d.about.email });
+  await audit({ name: "Registrant" }, "volunteer_registered", "volunteer", v.id, { publicId: v.publicId }, ip);
   await send({ to: phone, template: "volunteer_submitted", lang: await getLang(), vars: { name: v.firstName, id: v.publicId } });
   return ok(v);
 }
@@ -41,5 +41,5 @@ export async function GET(request) {
   const viewer = await getViewer();
   if (!viewer) return fail(401, "Sign in to continue.");
   const q = Object.fromEntries(new URL(request.url).searchParams);
-  return ok(listVolunteers(viewer, q));
+  return ok(await listVolunteers(viewer, q));
 }

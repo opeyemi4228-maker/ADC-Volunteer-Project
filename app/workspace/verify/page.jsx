@@ -58,16 +58,16 @@ export default async function VerifyPage({ searchParams }) {
   const page = Number(sp.page) || 1;
 
   const vs = scopeSql(viewer, "volunteer");
-  const volCount = scalar(`SELECT COUNT(*) FROM volunteers WHERE status IN ('pending','info_requested') AND ${vs.sql}`, vs.params);
+  const volCount = await scalar(`SELECT COUNT(*) FROM volunteers WHERE status IN ('pending','info_requested') AND ${vs.sql}`, vs.params);
 
-  const list = tab === "groups" ? groupRows(viewer, { queue: 1, page, area: sp.area }) : volunteerRows(viewer, { queue: 1, page, area: sp.area, flagged: sp.flagged });
+  const list = tab === "groups" ? await groupRows(viewer, { queue: 1, page, area: sp.area }) : await volunteerRows(viewer, { queue: 1, page, area: sp.area, flagged: sp.flagged });
   const ids = list.rows.map((r) => r.id);
   const inList = ids.map((_, i) => `:i${i}`).join(",") || "''";
   const idParams = Object.fromEntries(ids.map((id, i) => [`i${i}`, id]));
-  const flags = all(`SELECT * FROM duplicate_flags WHERE resolved_at IS NULL AND entity_type = :t AND entity_id IN (${inList})`, { t: tab === "groups" ? "group" : "volunteer", ...idParams });
-  const leaders = tab === "groups" ? all(`SELECT group_id, position, first_name, surname, phone_enc FROM group_leaders WHERE group_id IN (${inList}) ORDER BY sort`, idParams) : [];
-  const media = tab === "groups" ? all(`SELECT id, group_id, kind, event_name FROM media_items WHERE kind = 'photo' AND group_id IN (${inList})`, idParams) : [];
-  const vRows = tab === "volunteers" ? all(`SELECT id, date_of_birth, phone_enc, phone_verified_at FROM volunteers WHERE id IN (${inList})`, idParams) : [];
+  const flags = await all(`SELECT * FROM duplicate_flags WHERE resolved_at IS NULL AND entity_type = :t AND entity_id IN (${inList})`, { t: tab === "groups" ? "group" : "volunteer", ...idParams });
+  const leaders = tab === "groups" ? await all(`SELECT group_id, position, first_name, surname, phone_enc FROM group_leaders WHERE group_id IN (${inList}) ORDER BY sort`, idParams) : [];
+  const media = tab === "groups" ? await all(`SELECT id, group_id, kind, event_name FROM media_items WHERE kind = 'photo' AND group_id IN (${inList})`, idParams) : [];
+  const vRows = tab === "volunteers" ? await all(`SELECT id, date_of_birth, phone_enc, phone_verified_at FROM volunteers WHERE id IN (${inList})`, idParams) : [];
   const vMap = new Map(vRows.map((v) => [v.id, v]));
 
   return (

@@ -31,12 +31,12 @@ export default async function MessagesPage() {
   const viewer = await requireViewer();
   if (!viewer.powers.includes("message")) redirect("/workspace");
   const s = scopeSql(viewer, "group", "g");
-  const groups = all(`SELECT g.id, g.name FROM support_groups g WHERE g.status = 'verified' AND ${s.sql} ORDER BY g.name LIMIT 500`, s.params);
+  const groups = await all(`SELECT g.id, g.name FROM support_groups g WHERE g.status = 'verified' AND ${s.sql} ORDER BY g.name LIMIT 500`, s.params);
   const approver = viewer.powers.includes("approve_messages");
-  const history = all(`SELECT * FROM messages WHERE created_by = :u OR :admin = 1 ORDER BY created_at DESC LIMIT 30`, { u: viewer.id, admin: approver ? 1 : 0 });
+  const history = await all(`SELECT * FROM messages WHERE created_by = :u OR :admin = 1 ORDER BY created_at DESC LIMIT 30`, { u: viewer.id, admin: approver ? 1 : 0 });
   const waiting = history.filter((m) => m.status === "awaiting_approval");
   const outbox = approver && isConsoleProvider
-    ? all("SELECT channel, to_enc, template, body, status, created_at FROM outbox WHERE template IS NULL OR template != 'otp' ORDER BY created_at DESC LIMIT 15")
+    ? await all("SELECT channel, to_enc, template, body, status, created_at FROM outbox WHERE template IS NULL OR template != 'otp' ORDER BY created_at DESC LIMIT 15")
     : [];
 
   return (
@@ -87,7 +87,7 @@ export default async function MessagesPage() {
           {outbox.length > 0 && (
             <section>
               <h2 className="h-section">Outbox (development)</h2>
-              <p className="t-help mt-1">SMS_PROVIDER is "console", so nothing leaves this computer. One-time codes are hidden.</p>
+              <p className="t-help mt-1">No SMS provider is connected yet (SMS_PROVIDER is "console"), so campaign messages are recorded but not delivered. One-time codes are shown on screen instead of texted.</p>
               <ul className="mt-3 space-y-2 text-[13px]">
                 {outbox.map((o, i) => (
                   <li key={i} className="rounded-lg bg-surface-alt p-2.5"><span className="text-ink-muted">{o.channel} → {maskPhone(open(o.to_enc)) || "email"} · {dateLabel(o.created_at, { hour: "2-digit", minute: "2-digit" })}</span><br />{o.body}</li>

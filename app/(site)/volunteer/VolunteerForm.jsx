@@ -20,16 +20,19 @@ const clear = (...keys) => (v, d) => ({ ...d, vote: { ...d.vote, ...Object.fromE
  */
 function buildScreens() {
   return [
-    { id: "help", title: "What would you like to volunteer for?", help: "Choose up to three things you'd be happy to do.",
+    { id: "help", title: "What would you like to volunteer for? (Choose up to 3)",
+      help: "Each person can volunteer for a maximum of THREE (3) things. Pick the three you'd be happiest to do. Once you've chosen three, untick one to change your choice.",
+      notice: "You can only select up to 3 volunteer roles.",
       items: [
         { path: "help.roles", kind: "cards", label: "", options: VOLUNTEER_ROLES, max: MAX_ROLES,
-          validate: (v) => (!v?.length ? "Choose at least one thing you'd like to do." : v.length > MAX_ROLES ? "Choose up to three ways to help." : null) },
+          validate: (v) => (!v?.length ? "Choose at least one thing you'd like to do." : v.length > MAX_ROLES ? "You can only choose up to 3 things. Untick one to continue." : null) },
       ] },
     { id: "you", title: "About you", server: 1,
       items: [
         { path: "about.first_name", kind: "text", label: "First name", autoComplete: "given-name", validate: (v) => (!isValidName(v) ? "Enter your first name using letters only." : null) },
         { path: "about.surname", kind: "text", label: "Surname", autoComplete: "family-name", validate: (v) => (!isValidName(v) ? "Enter your surname using letters only." : null) },
         { path: "about.phone", kind: "tel", label: "Phone number", wide: true, placeholder: "0803 123 4567", autoComplete: "tel-national",
+          hint: "Enter it carefully. You'll sign in with a code sent to this number, so it must be correct.",
           validate: (v) => (!normalizePhone(v) ? "Enter a Nigerian mobile number, e.g. 0803 123 4567." : null) },
       ] },
     { id: "more", title: (d, t) => t("Thanks, {name}. A little more about you", { name: d.about?.first_name?.trim() || "" }),
@@ -61,10 +64,9 @@ function buildScreens() {
           validate: (v, d) => (String(v ?? "").trim() === "" ? (d.help?.channel === "email" ? "Enter your email address, or choose another way to reach you." : null)
             : !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v).trim()) ? "Enter a valid email address." : null) },
       ] },
-    { id: "agree", title: "Create your password", help: "You'll use it with your phone number to sign in and get your volunteer ID card and certificate.",
+    { id: "agree", title: "Confirm and join",
+      help: "There's no password. To sign in later, enter the phone number you gave on this form and we'll text you a one-time code. Make sure that number is correct.",
       items: [
-        { path: "account.password", kind: "password", label: "Password", wide: true, autoComplete: "new-password", hint: "At least 8 characters, with some letters.",
-          validate: (v) => (String(v ?? "").length < 8 ? "Use at least 8 characters." : /^\d+$/.test(String(v)) ? "Use some letters as well as numbers." : null) },
         { path: "consent.accurate", kind: "check", label: "The information I have given is accurate.", validate: (v) => (!v ? "Please tick this box to finish." : null) },
         { path: "consent.data", kind: "check", label: (t) => <>{t("I agree to the campaign using this information to organise volunteers, as described in the")} <Link href="/privacy" target="_blank" className="link">{t("privacy notice")}</Link>.</>,
           validate: (v) => (!v ? "Please tick this box to finish." : null) },
@@ -77,7 +79,7 @@ export default function VolunteerForm({ role = "" }) {
   const t = useT();
   const [done, setDone] = useState(null);
   const [initial] = useState(() => ({
-    about: {}, vote: {}, consent: {}, account: {},
+    about: {}, vote: {}, consent: {},
     help: { roles: VOLUNTEER_ROLES.some((r) => r.value === role) ? [role] : [], languages: [] },
   }));
 
@@ -106,7 +108,7 @@ function Success({ done }) {
       <CheckCircle2 aria-hidden className="mx-auto size-14 text-brand-500" />
       <h2 className="mt-4 h-page">{t("Welcome, {name}", { name: done.firstName })}</h2>
       <p className="mt-2 text-ink-muted">{t("Your registration is pending verification. We've sent your volunteer ID by SMS.")}</p>
-      <p className="mt-1 text-ink-muted">{t("Sign in any time with your phone number and password to see your ID card. Your certificate appears there once you're verified.")}</p>
+      <p className="mt-1 text-ink-muted">{t("Sign in any time with the phone number you registered with. We'll text you a one-time code to sign in. Your certificate appears there once you're verified.")}</p>
       <div className="mx-auto mt-8 max-w-sm rounded-xl bg-surface-alt p-4 text-left">
         <p className="text-[13px] font-semibold text-ink-muted">{t("Volunteer ID")}</p>
         <p className="font-mono text-lg font-bold">{done.publicId}</p>

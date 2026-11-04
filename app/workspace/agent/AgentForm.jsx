@@ -84,7 +84,7 @@ export default function AgentForm({ defaultArea, today }) {
     const res = await fetch("/api/v1/sync/confirm-phone", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone: form.get("phone") }) }).catch(() => null);
     if (!res) return setCodeMsg("No network. You can still save; the coordinator will confirm the number by phone.");
     const j = await res.json();
-    setCodeMsg(res.ok ? `Code sent. Ask them to read it out.${j.devCode ? ` (Development: ${j.devCode})` : ""}` : j.error);
+    setCodeMsg(res.ok ? j.devCode ? `Text messages are not switched on yet. Their code is ${j.devCode}.` : "Code sent. Ask them to read it out." : j.error);
   }
 
   function save(e) {

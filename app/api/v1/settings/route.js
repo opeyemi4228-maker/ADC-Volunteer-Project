@@ -11,7 +11,7 @@ export async function POST(request) {
   if (denied) return denied;
   const { key, value } = await body(request);
   if (!KEYS[key] || typeof value !== KEYS[key]) return fail(422, "Unknown setting.");
-  setSetting(key, value);
-  audit(viewer, "setting_changed", "setting", key, { value }, await clientIp());
+  await setSetting(key, value);
+  await audit(viewer, "setting_changed", "setting", key, { value }, await clientIp());
   return ok({ ok: true });
 }

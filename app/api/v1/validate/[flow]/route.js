@@ -10,5 +10,5 @@ export async function POST(request, { params }) {
   const { flow } = await params;
   if (flow !== "volunteer") return fail(404, "Unknown form.");
   const { step, data } = await body(request);
-  return ok({ errors: validateVolunteerStep(Number(step), data ?? {}) });
+  return ok({ errors: await validateVolunteerStep(Number(step), data ?? {}) });
 }

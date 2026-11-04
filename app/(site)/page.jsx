@@ -23,18 +23,18 @@ const FAQ = [
   ["Can I register without data or a smartphone?", "Yes. Dial the USSD code on any phone, or ask your ward coordinator or a field agent to register you."],
 ];
 
-function data() {
-  const byState = all("SELECT vote_state_code AS code, COUNT(*) AS n FROM volunteers WHERE status = 'verified' GROUP BY vote_state_code");
+async function data() {
+  const byState = await all("SELECT vote_state_code AS code, COUNT(*) AS n FROM volunteers WHERE status = 'verified' GROUP BY vote_state_code");
   return {
-    volunteers: scalar("SELECT COUNT(*) FROM volunteers WHERE status = 'verified'"),
+    volunteers: await scalar("SELECT COUNT(*) FROM volunteers WHERE status = 'verified'"),
     byState: Object.fromEntries(byState.map((r) => [r.code, r.n])),
-    momentum: publicMomentum(),
+    momentum: await publicMomentum(),
   };
 }
 
 export default async function HomePage() {
   const t = await getT();
-  const d = data();
+  const d = await data();
   const ussd = process.env.NEXT_PUBLIC_USSD_CODE ?? "*XXX*YY#";
   const statesActive = Object.keys(d.byState).length;
   // Live figures only once they say something; "0 volunteers in 0 states" helps nobody.

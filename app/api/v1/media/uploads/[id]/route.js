@@ -8,7 +8,7 @@ import { ok, fail } from "@/lib/http";
 /** GET: where to resume (and, once done, a preview of the thumbnail). */
 export async function GET(request, { params }) {
   const owner = await uploadOwner();
-  const upload = owner ? getUpload((await params).id, owner) : null;
+  const upload = owner ? await getUpload((await params).id, owner) : null;
   if (!upload) return fail(404, "Upload not found.");
   if (new URL(request.url).searchParams.get("preview") && upload.thumbnail_key) {
     const file = objectPath(upload.thumbnail_key);
@@ -20,7 +20,7 @@ export async function GET(request, { params }) {
 /** PATCH with header Upload-Offset and the raw chunk as the body. */
 export async function PATCH(request, { params }) {
   const owner = await uploadOwner();
-  const upload = owner ? getUpload((await params).id, owner) : null;
+  const upload = owner ? await getUpload((await params).id, owner) : null;
   if (!upload) return fail(404, "Upload not found.");
   if (upload.error) return fail(422, upload.error);
   const offset = Number(request.headers.get("Upload-Offset"));
@@ -34,9 +34,9 @@ export async function PATCH(request, { params }) {
 
 export async function DELETE(_request, { params }) {
   const owner = await uploadOwner();
-  const upload = owner ? getUpload((await params).id, owner) : null;
+  const upload = owner ? await getUpload((await params).id, owner) : null;
   if (!upload) return fail(404, "Upload not found.");
   if (!upload.done) fs.rmSync(upload.temp_path, { force: true });
-  run("DELETE FROM uploads WHERE id = :id AND done = 0", { id: upload.id });
+  await run("DELETE FROM uploads WHERE id = :id AND done = 0", { id: upload.id });
   return ok({ deleted: true });
 }

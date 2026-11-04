@@ -16,15 +16,18 @@ export async function PATCH(request, { params }) {
   if (status === "publicity" && !viewer.powers.includes("publicity")) return fail(403, "Only the media directorate can clear media for publicity.");
   if (status === "rejected" && !String(reason ?? "").trim()) return fail(422, "Give a reason. The uploader will see it.");
   const s = scopeSql(viewer, "media");
-  const m = one(`SELECT * FROM media_items WHERE id = :mid AND ${s.sql}`, { mid: id, ...s.params });
+  const m = await one(`SELECT * FROM media_items WHERE id = :mid AND ${s.sql}`, { mid: id, ...s.params });
   if (!m) return fail(404, "Not found in your area.");
-  run("UPDATE media_items SET moderation_status = :s, moderated_by = :u, moderated_at = :now, rejection_reason = :r WHERE id = :id", {
+  await run("UPDATE media_items SET moderation_status = :s, moderated_by = :u, moderated_at = :now, rejection_reason = :r WHERE id = :id", {
     s: status, u: viewer.id, now: nowIso(), r: status === "rejected" ? String(reason).slice(0, 200) : null, id,
   });
-  if (status === "rejected" && m.group_id) {
-    const leader = one("SELECT phone_enc FROM group_leaders WHERE group_id = :g AND position = 'coordinator' LIMIT 1", { g: m.group_id });
-    if (leader) await send({ channel: "whatsapp", to: open(leader.phone_enc), template: "media_rejected", vars: { reason: String(reason).slice(0, 80) } });
+  // The person who sent it hears why: the volunteer, or for older group uploads the group's coordinator.
+  if (status === "rejected") {
+    const to = m.volunteer_id
+      ? await one("SELECT phone_enc FROM volunteers WHERE id = :v", { v: m.volunteer_id })
+      : m.group_id ? await one("SELECT phone_enc FROM group_leaders WHERE group_id = :g AND position = 'coordinator' LIMIT 1", { g: m.group_id }) : null;
+    if (to) await send({ channel: "whatsapp", to: open(to.phone_enc), template: "media_rejected", vars: { reason: String(reason).slice(0, 80) } });
   }
-  audit(viewer, `media_${status}`, "media", id, { reason }, await clientIp());
+  await audit(viewer, `media_${status}`, "media", id, { reason }, await clientIp());
   return ok({ ok: true });
 }

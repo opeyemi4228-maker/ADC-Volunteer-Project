@@ -2,20 +2,24 @@
  * Workspace look, scoped under .ws so the public site keeps its own style.
  *
  * Coordinators spend hours here working through queues and tables, so the
- * interface is quiet on purpose: flat surfaces, 1px borders, square-ish
- * controls, one weight step between headings and text, and colour reserved
- * for what needs a decision (status, overdue, the primary action). Nothing
- * here is decoration.
+ * interface stays calm: white cards with a hairline border and the faintest
+ * shadow on a pale canvas, rounded controls, one weight step between headings
+ * and text, and colour reserved for what needs a decision (status, overdue,
+ * the primary action).
  */
-.ws .card { box-shadow: none; border-radius: 10px; }
-.ws .btn { border-radius: 8px; font-weight: 600; letter-spacing: 0; }
-.ws .btn-secondary { color: var(--color-ink); border: 1px solid #9aa39f; }
+.ws .card { border-color: #e4e8e6; border-radius: 16px; box-shadow: 0 1px 2px rgb(16 24 20 / 0.04), 0 1px 1px rgb(16 24 20 / 0.02); }
+.ws a.card:hover { border-color: #c9d1cd; box-shadow: 0 6px 20px -10px rgb(16 24 20 / 0.18); }
+.ws .btn { border-radius: 10px; font-weight: 600; letter-spacing: 0; }
+.ws .btn-sm { font-size: 0.875rem; }
+.ws .btn-secondary { color: var(--color-ink); border: 1px solid #d3d9d6; background: #fff; }
 .ws .btn-secondary:hover:not(:disabled) { background: var(--color-surface-alt); }
 .ws .chip { border-radius: 8px; border-width: 1px; }
 .ws .input { border-radius: 8px; border-width: 1px; border-color: #9aa39f; }
-.ws .h-page { font-size: 1.5rem; line-height: 2rem; font-weight: 700; letter-spacing: -0.01em; }
+.ws .h-page { font-size: 1.625rem; line-height: 2.125rem; font-weight: 700; letter-spacing: -0.01em; }
 .ws .h-section { font-size: 1.0625rem; line-height: 1.5rem; font-weight: 700; letter-spacing: 0; }
-.ws .table-clean th { background: transparent; border-bottom: 1px solid var(--color-ink); }
+.ws .table-clean th { background: transparent; border-bottom: 1px solid var(--color-line); font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+.ws .table-clean td { border-bottom-color: #edf0ef; }
+.ws .table-clean tbody tr:last-child td { border-bottom: 0; }
 .ws .table-clean tbody tr:nth-child(even) td { background: transparent; }
 .ws .table-clean tbody tr:hover td { background: var(--color-surface-alt); }
 

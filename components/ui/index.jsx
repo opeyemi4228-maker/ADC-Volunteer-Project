@@ -129,7 +129,8 @@ export function Stat({ label, value, sub, tone }) {
   return (
     <div className="border-t-2 border-ink pt-3">
       <p className="text-[14px] font-medium text-ink-muted">{label}</p>
-      <p className={cx("mt-1 text-[28px] font-bold leading-9 num tracking-tight", tone === "warn" && "text-warning")}>{value}</p>
+      {/* Proportional digits: tabular ones look loose at this size and only help numbers stacked in a column. */}
+      <p className={cx("mt-1 text-[28px] font-bold leading-9 tracking-tight", tone === "warn" && "text-warning")}>{value}</p>
       {sub && <p className="mt-0.5 text-[13px] text-ink-muted">{sub}</p>}
     </div>
   );
@@ -148,7 +149,11 @@ export function fmt(n) {
 
 export function pct(part, whole) {
   if (!whole) return "0%";
-  return `${Math.round((part / whole) * 100)}%`;
+  const n = Math.round((part / whole) * 100);
+  // Something is never shown as nothing: 11 of 176,623 is "<1%", not "0%".
+  if (n === 0 && part > 0) return "<1%";
+  if (n === 100 && part < whole) return ">99%";
+  return `${n}%`;
 }
 
 export function dateLabel(value, opts = { day: "numeric", month: "short", year: "numeric" }) {

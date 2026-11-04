@@ -1,12 +1,13 @@
-import { test, before } from "node:test";
+import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-// A throwaway database and upload folder for this run.
+// A throwaway in-memory Postgres and upload folder for this run.
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "adc-test-"));
-process.env.DATABASE_FILE = path.join(dir, "test.db");
+process.env.PGLITE_DIR = "memory://";
+for (const k of ["DATABASE_URL", "DATABASE_URL_POOLED", "APP_DATABASE_URL"]) delete process.env[k];
 process.env.STORAGE_DIR = path.join(dir, "uploads");
 process.env.APP_SECRET = "test-secret-for-unit-tests-only";
 
@@ -18,6 +19,7 @@ before(async () => {
   db = await import("../lib/db.js");
   geo = await import("../lib/geo.js");
 });
+after(() => db.closeDb());
 
 const volunteer = (over = {}) => ({
   about: { first_name: "Chukwuemeka", surname: "Obi", gender: "male", dob: "1992-04-17" },
@@ -36,54 +38,56 @@ test("locations must be a real INEC combination (§11)", () => {
   assert.match(geo.checkLocation({ state: "FCT", lga: "FCT-002", ward: "FCT-002-01", pu }), /polling unit/);
 });
 
-test("under-18s are blocked and every step validates (§6, §11)", () => {
+test("under-18s are blocked and every step validates (§6, §11)", async () => {
   const young = volunteer({ about: { first_name: "Ada", surname: "Eze", gender: "female", dob: `${new Date().getFullYear() - 16}-01-01` } });
-  assert.match(reg.validateVolunteer(young)["about.dob"], /18 or older/);
-  assert.deepEqual(reg.validateVolunteer(volunteer(), { channel: "ussd" }), {});
+  assert.match((await reg.validateVolunteer(young))["about.dob"], /18 or older/);
+  assert.deepEqual(await reg.validateVolunteer(volunteer(), { channel: "ussd" }), {});
   // The website asks for the phone in step 1 (no code any more).
-  assert.match(reg.validateVolunteer(volunteer())["about.phone"], /Nigerian mobile number/);
+  assert.match((await reg.validateVolunteer(volunteer()))["about.phone"], /Nigerian mobile number/);
   const web = volunteer();
   web.about = { ...web.about, phone: "0809 111 0099" };
-  // ...and a password for the volunteer dashboard on the last screen.
-  assert.match(reg.validateVolunteer(web)["account.password"], /8 characters/);
-  web.account = { password: "Volunteer2026" };
-  assert.deepEqual(reg.validateVolunteer(web), {});
+  // No password: members sign in with a one-time code sent to this phone.
+  assert.deepEqual(await reg.validateVolunteer(web), {});
   // At most three roles.
   web.help = { ...web.help, roles: ["pu_agent", "mobiliser", "canvasser", "legal"] };
-  assert.match(reg.validateVolunteer(web)["help.roles"], /up to three/);
+  assert.match((await reg.validateVolunteer(web))["help.roles"], /up to 3/);
 });
 
-test("exact phone match blocks; similar name + same DOB + same ward is flagged (§11)", () => {
-  const a = reg.createVolunteer(volunteer(), { phone: "+2348091110001" });
+test("exact phone match blocks; similar name + same DOB + same ward is flagged (§11)", async () => {
+  const a = await reg.createVolunteer(volunteer(), { phone: "+2348091110001" });
   assert.ok(a.publicId.startsWith("ADC-M-37-"));
-  const again = reg.createVolunteer(volunteer(), { phone: "+2348091110001" });
+  const again = await reg.createVolunteer(volunteer(), { phone: "+2348091110001" });
   assert.ok(again.duplicatePhone);
-  const b = reg.createVolunteer(volunteer({ about: { first_name: "Chukwuemeka", surname: "Obih", gender: "male", dob: "1992-04-17" } }), { phone: "+2348091110002" });
-  const flags = db.all("SELECT * FROM duplicate_flags WHERE entity_id = :id", { id: b.id });
+  const b = await reg.createVolunteer(volunteer({ about: { first_name: "Chukwuemeka", surname: "Obih", gender: "male", dob: "1992-04-17" } }), { phone: "+2348091110002" });
+  const flags = await db.all("SELECT * FROM duplicate_flags WHERE entity_id = :id", { id: b.id });
   assert.equal(flags.length, 1);
   assert.equal(flags[0].other_id, a.id);
 });
 
-test("phone numbers are never stored in clear (§15)", () => {
-  const raw = fs.readFileSync(process.env.DATABASE_FILE).toString("latin1") + (fs.existsSync(`${process.env.DATABASE_FILE}-wal`) ? fs.readFileSync(`${process.env.DATABASE_FILE}-wal`).toString("latin1") : "");
+test("phone numbers are never stored in clear (§15)", async () => {
+  // Every row of every table, as text.
+  const tables = await db.all("SELECT tablename FROM pg_tables WHERE schemaname = 'public'");
+  let raw = "";
+  for (const { tablename } of tables) raw += (await db.all(`SELECT row_to_json(t)::text AS j FROM "${tablename}" t`)).map((r) => r.j).join("\n");
+  assert.ok(raw.includes("ADC-M-37-"), "the scan sees the volunteer rows");
   assert.ok(!raw.includes("+2348091110001"));
   assert.ok(!raw.includes("8091110001"));
 });
 
-test("a ward coordinator sees only their ward (§2, §20)", () => {
-  reg.createVolunteer(volunteer({ vote: { state: "LAG", lga: "LAG-010", ward: geo.lgaOf("LAG-010").wards[0].code, pu_unknown: true, pvc: "yes" } }), { phone: "+2348091110003" });
+test("a ward coordinator sees only their ward (§2, §20)", async () => {
+  await reg.createVolunteer(volunteer({ vote: { state: "LAG", lga: "LAG-010", ward: geo.lgaOf("LAG-010").wards[0].code, pu_unknown: true, pvc: "yes" } }), { phone: "+2348091110003" });
   const ward = { id: "w", roles: [{ role: "ward_coordinator", area_type: "ward", area_code: "FCT-002-09" }] };
   const s = scope.scopeSql(ward, "volunteer");
-  const seen = db.all(`SELECT vote_ward_code FROM volunteers WHERE ${s.sql}`, s.params);
+  const seen = await db.all(`SELECT vote_ward_code FROM volunteers WHERE ${s.sql}`, s.params);
   assert.ok(seen.length >= 2);
   assert.ok(seen.every((r) => r.vote_ward_code === "FCT-002-09"));
   const nobody = scope.scopeSql({ roles: [] }, "volunteer");
-  assert.equal(nobody.sql, "0");
+  assert.equal(nobody.sql, "FALSE");
   const admin = scope.scopeSql({ roles: [{ role: "national_admin" }] }, "volunteer");
-  assert.equal(admin.sql, "1");
+  assert.equal(admin.sql, "TRUE");
 });
 
-test("groups: duplicate names in the same LGA are flagged, join codes are unique", () => {
+test("groups: duplicate names in the same LGA are flagged, join codes are unique", async () => {
   const group = (name, phone) => ({
     about: { name, category: "youth", operating_level: "ward", date_formed: "2025-03", size: "51-200" },
     location: { state: "FCT", lga: "FCT-002", ward: "FCT-002-09", areas: [] },
@@ -94,19 +98,19 @@ test("groups: duplicate names in the same LGA are flagged, join codes are unique
     account: { email: `${phone.slice(-4)}@example.com`, password: "kubwa-2027" },
     consent: { accurate: true, data: true },
   });
-  assert.deepEqual(reg.validateGroup(group("Kubwa Youth Vanguard", "+2348031230000")), {});
+  assert.deepEqual(await reg.validateGroup(group("Kubwa Youth Vanguard", "+2348031230000")), {});
   const weak = group("Weak", "+2348031230009");
   weak.account.password = "12345678";
-  assert.match(reg.validateGroup(weak)["account.password"], /letters/);
-  const g1 = reg.createGroup(group("Kubwa Youth Vanguard", "+2348031230000"), { registrantPhone: "+2348031230000" });
-  const g2 = reg.createGroup(group("Kubwa Youths Vanguard", "+2348031230001"), { registrantPhone: "+2348031230001" });
+  assert.match((await reg.validateGroup(weak))["account.password"], /letters/);
+  const g1 = await reg.createGroup(group("Kubwa Youth Vanguard", "+2348031230000"), { registrantPhone: "+2348031230000" });
+  const g2 = await reg.createGroup(group("Kubwa Youths Vanguard", "+2348031230001"), { registrantPhone: "+2348031230001" });
   assert.notEqual(g1.joinCode, g2.joinCode);
   assert.match(g1.publicId, /^ADC-SG-37-\d{4}$/);
-  const flags = db.all("SELECT reason FROM duplicate_flags WHERE entity_id = :id", { id: g2.id });
+  const flags = await db.all("SELECT reason FROM duplicate_flags WHERE entity_id = :id", { id: g2.id });
   assert.ok(flags.some((f) => /Similar name/.test(f.reason)));
   const one = group("Solo", "+2348031230002");
   one.leaders = [one.leaders[0]];
-  assert.match(reg.validateGroupStep(3, one).leaders, /other leader/);
+  assert.match((await reg.validateGroupStep(3, one)).leaders, /other leader/);
 });
 
 test("every USSD screen fits in 160 characters (§7.1)", () => {
@@ -120,17 +124,17 @@ test("every USSD screen fits in 160 characters (§7.1)", () => {
   }
 });
 
-test("USSD registration completes and resumes after a dropped session (§7.1)", () => {
+test("USSD registration completes and resumes after a dropped session (§7.1)", async () => {
   const phone = "+2348099990001";
-  let out = conv.openSession("ussd", phone);
-  for (const input of ["1", "Ọlá", "Bello"]) out = conv.answer("ussd", phone, input);
+  let out = await conv.openSession("ussd", phone);
+  for (const input of ["1", "Ọlá", "Bello"]) out = await conv.answer("ussd", phone, input);
   // The network drops here. Redialling offers to continue.
-  out = conv.openSession("ussd", phone);
+  out = await conv.openSession("ussd", phone);
   assert.match(out.text, /Continue where I stopped/);
-  for (const input of ["1", "2", "1995", "0", "0", "0", "0", "1", "3", "6", "1", "1", "0", "1", "1"]) out = conv.answer("ussd", phone, input);
+  for (const input of ["1", "2", "1995", "0", "0", "0", "0", "1", "3", "6", "1", "1", "0", "1", "1"]) out = await conv.answer("ussd", phone, input);
   assert.ok(out.end, out.text);
   assert.match(out.text, /Volunteer ID ADC-M-37-/);
-  const v = reg.volunteerByPhone(phone);
+  const v = await reg.volunteerByPhone(phone);
   assert.equal(v.registration_channel, "ussd");
   assert.equal(v.vote_ward_code, "FCT-002-09"); // option 6 in Bwari is Kubwa
 });
@@ -150,10 +154,10 @@ test("membership lists: CSV with quotes and XML are read; rows without a name ar
 
 test("certificates are only issued to verified volunteers, and carry a number", async () => {
   const cert = await import("../lib/certificate.js");
-  const v = db.one("SELECT id FROM volunteers LIMIT 1");
-  db.run("UPDATE volunteers SET status = 'pending' WHERE id = :id", { id: v.id });
+  const v = await db.one("SELECT id FROM volunteers LIMIT 1");
+  await db.run("UPDATE volunteers SET status = 'pending' WHERE id = :id", { id: v.id });
   assert.equal(await cert.buildCertificate(v.id), null);
-  db.run("UPDATE volunteers SET status = 'verified', verified_at = datetime('now') WHERE id = :id", { id: v.id });
+  await db.run("UPDATE volunteers SET status = 'verified', verified_at = now() WHERE id = :id", { id: v.id });
   const c = await cert.buildCertificate(v.id);
   assert.match(c.number, /^ADC-CERT-\d{4}-\d+$/);
   assert.equal(Buffer.from(c.bytes).subarray(0, 5).toString(), "%PDF-");

@@ -1,10 +1,12 @@
 /**
  * Runs once when the server starts.
  *
- * Development: loads the demonstration data on a fresh install so the site is
- * usable immediately (set SEED_DEMO=0 to start empty).
- * Production: never loads demo data unless SEED_DEMO=1 is set explicitly, and
- * refuses to start without APP_SECRET, which encrypts every phone number.
+ * Refuses to start in production without APP_SECRET, which encrypts every
+ * phone number. With the embedded development database (no DATABASE_URL),
+ * loads the demonstration data on a fresh install only when SEED_DEMO=1 is
+ * set; by default the system starts empty. A real database is never
+ * seeded from here: many server instances may start at once, so demo data
+ * goes in once, deliberately, with `npm run db:seed`.
  */
 export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
@@ -12,8 +14,8 @@ export async function register() {
   if (production && !process.env.APP_SECRET) {
     throw new Error("APP_SECRET must be set in production (see .env.example).");
   }
-  const seed = production ? process.env.SEED_DEMO === "1" : process.env.SEED_DEMO !== "0";
-  if (!seed) return;
+  const { runtimeUrl } = await import("./lib/db.js");
+  if (runtimeUrl() || production || process.env.SEED_DEMO !== "1") return;
   const { seedDemo } = await import("./lib/seed.js");
   await seedDemo();
 }

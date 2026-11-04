@@ -11,7 +11,13 @@ export const metadata = { title: "Data requests" };
 export default async function PrivacyPage() {
   const viewer = await requireViewer();
   if (!viewer.powers.includes("data_requests")) redirect("/workspace");
-  const list = all("SELECT * FROM data_requests ORDER BY status = 'open' DESC, created_at ASC LIMIT 100");
+  const requests = await all("SELECT * FROM data_requests ORDER BY (status = 'open') DESC, created_at ASC LIMIT 100");
+  // The records each request is about, loaded together before rendering.
+  const list = await Promise.all(requests.map(async (r) => ({
+    ...r,
+    volunteer: await one("SELECT public_id, first_name, surname FROM volunteers WHERE phone_hash = :h", { h: r.subject_hash }),
+    groups: await all("SELECT g.public_id, g.name FROM group_leaders l JOIN support_groups g ON g.id = l.group_id WHERE l.phone_hash = :h", { h: r.subject_hash }),
+  })));
   return (
     <>
       <PageHeader title="Data requests" description="Requests from people to delete their data (NDPA 2023). Deleting removes their personal details and anonymises the record, so totals and history stay consistent. It cannot be undone." />
@@ -19,8 +25,8 @@ export default async function PrivacyPage() {
         <ul className="space-y-3">
           {list.map((r) => {
             const d = JSON.parse(r.details ?? "{}");
-            const v = one("SELECT public_id, first_name, surname FROM volunteers WHERE phone_hash = :h", { h: r.subject_hash });
-            const g = all("SELECT g.public_id, g.name FROM group_leaders l JOIN support_groups g ON g.id = l.group_id WHERE l.phone_hash = :h", { h: r.subject_hash });
+            const v = r.volunteer;
+            const g = r.groups;
             return (
               <li key={r.id}>
                 <Card className="p-4">

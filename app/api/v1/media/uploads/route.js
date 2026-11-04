@@ -10,7 +10,7 @@ export async function POST(request) {
   const owner = await uploadOwner({ create: true });
   if (!owner) return fail(401, "Verify your phone number first.");
   const { name, type, size } = await body(request);
-  const result = createUpload({ ownerHash: owner, fileName: name, type, size: Number(size) });
+  const result = await createUpload({ ownerHash: owner, fileName: name, type, size: Number(size) });
   if (result.error) return fail(400, result.error);
   return ok(result);
 }

@@ -8,6 +8,6 @@ export async function POST(request) {
   if (denied) return denied;
   const r = await createMessage(viewer, await body(request));
   if (r.error) return fail(422, r.error);
-  audit(viewer, "message_campaign", "message", r.id, { recipients: r.count, cost: r.cost, status: r.status }, await clientIp());
+  await audit(viewer, "message_campaign", "message", r.id, { recipients: r.count, cost: r.cost, status: r.status }, await clientIp());
   return ok(r);
 }

@@ -13,7 +13,7 @@ export default async function NewActivity({ searchParams }) {
   if (!viewer.powers.includes("log_activity")) redirect("/workspace/activities");
   const sp = await searchParams;
   const s = scopeSql(viewer, "group", "g");
-  const groups = all(`SELECT g.id, g.name, g.state_code, g.lga_code, g.ward_code FROM support_groups g WHERE g.status = 'verified' AND ${s.sql} ORDER BY g.name LIMIT 300`, s.params);
+  const groups = await all(`SELECT g.id, g.name, g.state_code, g.lga_code, g.ward_code FROM support_groups g WHERE g.status = 'verified' AND ${s.sql} ORDER BY g.name LIMIT 300`, s.params);
   const chosen = sp.group ? groups.find((g) => g.id === sp.group) : groups.length === 1 ? groups[0] : null;
   const home = viewer.roles.find((r) => ["ward", "lga", "state"].includes(r.area_type));
   const location = chosen

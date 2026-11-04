@@ -11,7 +11,7 @@ import { ok, fail, body } from "@/lib/http";
 export async function POST(request) {
   const reg = await getRegistrant();
   const viewer = reg ? null : await getViewer();
-  const a = reg ? agentFor(reg.phoneHash)?.assignment : null;
+  const a = reg ? (await agentFor(reg.phoneHash))?.assignment : null;
   if (!a && !viewer) return fail(401, "Verify your phone number first.");
   const d = await body(request);
   if (!ELECTION_INCIDENTS.some((o) => o.value === d.category)) return fail(422, "Choose what happened.", { errors: { category: "Choose what happened." } });
@@ -19,11 +19,11 @@ export async function POST(request) {
   const pu = a?.pu_code ?? d.pu ?? null;
   if (!pu) return fail(422, "Which polling unit?");
   const id = uuid();
-  const mediaIds = attachMedia(
+  const mediaIds = await attachMedia(
     (d.media ?? []).map((m) => ({ ...m, consent: true, event_name: `Incident at ${pu}`, event_date: new Date().toISOString().slice(0, 10), state: pu.slice(0, 3), lga: pu.slice(0, 7), ward: pu.slice(0, 10) })),
     { ownerType: "incident", ownerId: id, uploadedBy: reg ? reg.phoneHash : `user:${viewer.id}`, uploaderName: reg ? "PU agent" : viewer.name },
   );
-  run(
+  await run(
     `INSERT INTO incidents (id, pu_code, state_code, lga_code, ward_code, category, severity, description, media_ids, reported_by, reporter_name)
      VALUES (:id, :pu, :s, :l, :w, :c, :sev, :d, :m, :by, :name)`,
     {
@@ -31,6 +31,6 @@ export async function POST(request) {
       m: JSON.stringify(mediaIds), by: a?.volunteer_id ?? viewer?.id, name: a ? "PU agent" : viewer.name,
     },
   );
-  audit(viewer ?? { name: "PU agent" }, "incident_reported", "incident", id, { pu, category: d.category, severity: d.severity });
+  await audit(viewer ?? { name: "PU agent" }, "incident_reported", "incident", id, { pu, category: d.category, severity: d.severity });
   return ok({ id });
 }

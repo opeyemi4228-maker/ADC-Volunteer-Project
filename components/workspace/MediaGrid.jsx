@@ -43,6 +43,12 @@ function MediaCard({ m, canModerate, canPublicity, showGroup }) {
       <div className="space-y-2 p-4">
         <p className="font-semibold">{m.event_name}</p>
         <p className="text-[13px] text-ink-muted">{dateLabel(m.event_date)} · {m.place}{m.attendance ? ` · about ${m.attendance} people` : ""}</p>
+        {m.uploader_name && (
+          <p className="text-[13px]">
+            Sent by{" "}
+            {m.volunteer_id ? <a className="link" href={`/workspace/volunteers/${m.volunteer_id}`}>{m.uploader_name}</a> : <span className="font-semibold">{m.uploader_name}</span>}
+          </p>
+        )}
         {showGroup && m.group_name && <p className="text-[13px]"><a className="link" href={`/workspace/groups/${m.group_id}?tab=gallery`}>{m.group_name}</a></p>}
         {m.caption && <p className="text-[14px]">{m.caption}</p>}
         {m.duplicate_of && <p className="flex items-center gap-1 text-[13px] font-semibold text-warning"><AlertTriangle aria-hidden className="size-4" /> Looks like a photo already uploaded</p>}

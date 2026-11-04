@@ -19,7 +19,12 @@ export default function Error({ error, reset }) {
         <button type="button" onClick={() => reset()} className="btn btn-primary">Try again</button>
         <Link href="/" className="link">Go to the home page</Link>
       </div>
-      {error?.digest && <p className="mt-10 text-[13px] text-ink-muted">Reference: {error.digest}</p>}
+      {/* A server error carries a digest that matches the host's logs; a browser error has none, so its message is the only clue. */}
+      {error?.digest ? (
+        <p className="mt-10 text-[13px] text-ink-muted">Reference: {error.digest}</p>
+      ) : error?.message ? (
+        <p className="mt-10 break-words text-[13px] text-ink-muted">Details for support: {error.name ? `${error.name}: ` : ""}{error.message}</p>
+      ) : null}
     </main>
   );
 }

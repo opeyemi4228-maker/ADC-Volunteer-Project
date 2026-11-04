@@ -11,7 +11,7 @@ import { ACTIVITY_TYPES, VOTER_CONCERNS, INCIDENT_TYPES } from "@/lib/options";
 import { post } from "@/components/workspace/actions";
 import { Alert } from "@/components/ui";
 
-export default function ActivityForm({ groups, defaultGroup, defaultLocation }) {
+export default function ActivityForm({ groups, defaultGroup, defaultLocation, doneHref = "/workspace/activities" }) {
   const router = useRouter();
   const form = useForm({ group_id: defaultGroup ?? "", type: "", date: new Date().toISOString().slice(0, 10), location: defaultLocation ?? {}, concerns: [], incident_type: "none" });
   const [media, setMedia] = useState([]);
@@ -25,7 +25,7 @@ export default function ActivityForm({ groups, defaultGroup, defaultLocation }) 
     setError("");
     try {
       const out = await post("/api/v1/activities", { ...form.data, media: media.filter((m) => m.status === "done").map(({ upload_id, kind, external_url, caption, consent }) => ({ upload_id, kind, external_url, caption, consent })) });
-      router.push(`/workspace/activities?reported=${out.publicId}`);
+      router.push(`${doneHref}?reported=${out.publicId}`);
       router.refresh();
     } catch (err) {
       setError(err.message);

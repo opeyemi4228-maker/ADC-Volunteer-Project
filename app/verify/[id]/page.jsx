@@ -15,12 +15,12 @@ export const metadata = { title: "Verify a certificate", robots: { index: false 
  */
 export default async function VerifyCertificate({ params }) {
   const { id } = await params;
-  const v = one(
+  const v = await one(
     "SELECT id, public_id, first_name, middle_name, surname, status, verified_at, vote_state_code, vote_lga_code, vote_ward_code FROM volunteers WHERE public_id = :id AND deletion_requested_at IS NULL",
     { id: String(id).toUpperCase() },
   );
   const valid = v?.status === "verified";
-  const roles = v ? all("SELECT role FROM volunteer_roles WHERE volunteer_id = :v", { v: v.id }).map((r) => r.role) : [];
+  const roles = v ? (await all("SELECT role FROM volunteer_roles WHERE volunteer_id = :v", { v: v.id })).map((r) => r.role) : [];
   return (
     <main className="mx-auto max-w-xl px-4 py-12">
       <Link href="/" className="flex items-center gap-2"><Logo size={34} /><span className="font-bold">ADC Volunteers System</span></Link>

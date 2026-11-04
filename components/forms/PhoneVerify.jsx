@@ -6,6 +6,7 @@ import { Loader2, ShieldCheck, Smartphone } from "lucide-react";
 import { Alert, Field } from "@/components/ui";
 import { useLang, useT } from "@/lib/i18n/client";
 import { api } from "./api";
+import ScreenCode from "./ScreenCode";
 
 /**
  * Step 1 of every public flow: prove the phone number with a six-digit SMS
@@ -90,13 +91,9 @@ export default function PhoneVerify({ purpose = "register", onVerified, intro })
 
   return (
     <form onSubmit={verify} className="space-y-5">
-      <Alert tone="info" title={t("Code sent")}>
-        {t("Enter the 6-digit code we sent to {phone}.", { phone: sent.phone })}
-        {sent.devCode && (
-          <p className="mt-1 text-[13px]">
-            {t("Development mode: your code is")} <strong className="font-mono">{sent.devCode}</strong>
-          </p>
-        )}
+      <Alert tone="info" title={sent.devCode ? t("Your code") : t("Code sent")}>
+        {!sent.devCode && t("Enter the 6-digit code we sent to {phone}.", { phone: sent.phone })}
+        <ScreenCode code={sent.devCode} onUse={setCode} />
       </Alert>
       <Field id="otp" label={t("6-digit code")} error={error ? t(error) : undefined}>
         {(aria) => (

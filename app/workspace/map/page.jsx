@@ -21,26 +21,26 @@ const METRICS = [
 
 export default async function MapPage({ searchParams }) {
   const viewer = await requireViewer();
-  if (!viewer.powers.includes("verify")) redirect("/workspace");
+  if (!viewer.powers.includes("view_map")) redirect("/workspace");
   const sp = await searchParams;
   const area = resolveArea(viewer, sp.area);
   const metric = METRICS.find((m) => m.key === sp.metric) ?? METRICS[0];
   const crumbs = breadcrumb(area).map((c) => ({ label: c.name, href: withParams("/workspace/map", {}, { area: c.code, metric: sp.metric }) }));
   const drawable = ["national", "zone", "state"].includes(area.type);
-  const map = drawable ? coverage(viewer, area.type, area.code) : null;
+  const map = drawable ? await coverage(viewer, area.type, area.code) : null;
   const drillBase = `/workspace/map?${sp.metric ? `metric=${sp.metric}&` : ""}area=`;
 
   // Gaps: wards (for an LGA) or polling units (for a ward) with nobody.
   let gaps = null;
   const V = scopeSql(viewer, "volunteer", "v");
   if (area.type === "lga") {
-    const counts = new Map(all(`SELECT v.vote_ward_code AS c, COUNT(*) AS n, COUNT(DISTINCT v.vote_pu_code) AS pus FROM volunteers v WHERE ${V.sql} AND v.vote_lga_code = :l GROUP BY c`, { ...V.params, l: area.code }).map((r) => [r.c, r]));
-    const groups = new Set(all("SELECT ward_code AS c FROM support_groups WHERE status = 'verified' AND lga_code = :l UNION SELECT area_code FROM group_areas_covered a JOIN support_groups g ON g.id = a.group_id WHERE g.status = 'verified'", { l: area.code }).map((r) => r.c));
+    const counts = new Map((await all(`SELECT v.vote_ward_code AS c, COUNT(*) AS n, COUNT(DISTINCT v.vote_pu_code) AS pus FROM volunteers v WHERE ${V.sql} AND v.vote_lga_code = :l GROUP BY c`, { ...V.params, l: area.code })).map((r) => [r.c, r]));
+    const groups = new Set((await all("SELECT ward_code AS c FROM support_groups WHERE status = 'verified' AND lga_code = :l UNION SELECT area_code FROM group_areas_covered a JOIN support_groups g ON g.id = a.group_id WHERE g.status = 'verified'", { l: area.code })).map((r) => r.c));
     gaps = { kind: "ward", rows: lgaOf(area.code).wards.map((w) => ({ code: w.code, name: w.name, volunteers: counts.get(w.code)?.n ?? 0, pus: counts.get(w.code)?.pus ?? 0, totalPus: w.units, hasGroup: groups.has(w.code) })) };
   }
   if (area.type === "ward") {
-    const counts = new Map(all(`SELECT v.vote_pu_code AS c, COUNT(*) AS n FROM volunteers v WHERE ${V.sql} AND v.vote_ward_code = :w AND v.vote_pu_code IS NOT NULL GROUP BY c`, { ...V.params, w: area.code }).map((r) => [r.c, r.n]));
-    const agents = new Map(all("SELECT pu_code AS c, COUNT(*) AS n FROM pu_agents WHERE pu_code LIKE :w || '%' GROUP BY pu_code", { w: area.code }).map((r) => [r.c, r.n]));
+    const counts = new Map((await all(`SELECT v.vote_pu_code AS c, COUNT(*) AS n FROM volunteers v WHERE ${V.sql} AND v.vote_ward_code = :w AND v.vote_pu_code IS NOT NULL GROUP BY c`, { ...V.params, w: area.code })).map((r) => [r.c, r.n]));
+    const agents = new Map((await all("SELECT pu_code AS c, COUNT(*) AS n FROM pu_agents WHERE pu_code LIKE :w::text || '%' GROUP BY pu_code", { w: area.code })).map((r) => [r.c, r.n]));
     gaps = { kind: "pu", rows: wardUnits(area.code).map((u) => ({ code: u.code, name: u.name, volunteers: counts.get(u.code) ?? 0, agents: agents.get(u.code) ?? 0 })) };
   }
   const onlyGaps = sp.view === "gaps";

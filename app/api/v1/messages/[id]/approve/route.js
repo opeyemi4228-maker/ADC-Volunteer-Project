@@ -10,12 +10,12 @@ export async function POST(request, { params }) {
   const { id } = await params;
   const { decision } = await body(request);
   if (decision === "cancel") {
-    run("UPDATE messages SET status = 'cancelled', approved_by = :u, approver_name = :n WHERE id = :id AND status = 'awaiting_approval'", { u: viewer.id, n: viewer.name, id });
-    audit(viewer, "message_cancelled", "message", id, null, await clientIp());
+    await run("UPDATE messages SET status = 'cancelled', approved_by = :u, approver_name = :n WHERE id = :id AND status = 'awaiting_approval'", { u: viewer.id, n: viewer.name, id });
+    await audit(viewer, "message_cancelled", "message", id, null, await clientIp());
     return ok({ ok: true });
   }
   const r = await approveMessage(viewer, id);
   if (r.error) return fail(422, r.error);
-  audit(viewer, "message_approved", "message", id, null, await clientIp());
+  await audit(viewer, "message_approved", "message", id, null, await clientIp());
   return ok(r);
 }

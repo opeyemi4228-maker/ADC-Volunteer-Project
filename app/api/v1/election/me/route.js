@@ -6,5 +6,5 @@ import { ok } from "@/lib/http";
 export async function GET() {
   const reg = await getRegistrant();
   if (!reg) return ok({ signedIn: false });
-  return ok({ live: isLive(), ...(agentFor(reg.phoneHash) ?? { volunteer: null, assignment: null }) });
+  return ok({ live: await isLive(), ...(await agentFor(reg.phoneHash) ?? { volunteer: null, assignment: null }) });
 }

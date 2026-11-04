@@ -24,13 +24,13 @@ export function PageHeader({ title, description, actions, crumbs, eyebrow }) {
           </ol>
         </nav>
       )}
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 xl:flex-nowrap">
         <div className="min-w-0">
           {eyebrow && <p className="text-[13px] font-bold uppercase tracking-wider text-brand-700">{eyebrow}</p>}
           <h1 className="h-page">{title}</h1>
           {description && <p className="mt-1 max-w-3xl text-[15px] text-ink-muted">{description}</p>}
         </div>
-        {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+        {actions && <div className="flex min-w-0 flex-wrap items-center gap-2 xl:shrink-0">{actions}</div>}
       </div>
     </div>
   );
@@ -100,20 +100,43 @@ export function FilterSearch({ name = "q", label = "Search", value, placeholder 
   );
 }
 
+/** Page numbers around the current one, with the first and last always shown: 1 … 4 5 [6] 7 8 … 40 */
+function pageList(page, pages) {
+  const want = new Set([1, pages, page - 2, page - 1, page, page + 1, page + 2].filter((p) => p >= 1 && p <= pages));
+  const out = [];
+  let prev = 0;
+  for (const p of [...want].sort((a, b) => a - b)) {
+    if (p - prev > 1) out.push(null);
+    out.push(p);
+    prev = p;
+  }
+  return out;
+}
+
 export function Pagination({ page, pages, total, hrefFor }) {
   if (pages <= 1) return <p className="mt-3 text-[13px] text-ink-muted num">{total} {total === 1 ? "record" : "records"}</p>;
   return (
-    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-[14px]">
-      <p className="text-ink-muted num">Page {page} of {pages} · {total} records</p>
-      <div className="flex gap-2">
-        {page > 1 ? (
-          <Link href={hrefFor(page - 1)} className="btn btn-secondary btn-sm"><ChevronLeft aria-hidden className="size-4" /> Previous</Link>
-        ) : null}
-        {page < pages ? (
-          <Link href={hrefFor(page + 1)} className="btn btn-secondary btn-sm">Next <ChevronRight aria-hidden className="size-4" /></Link>
-        ) : null}
+    <nav aria-label="Pages" className="mt-4 flex flex-wrap items-center justify-between gap-3 text-[14px]">
+      <p className="text-ink-muted num">Page {page} of {pages} · {new Intl.NumberFormat("en-NG").format(total)} records</p>
+      <div className="flex flex-wrap items-center gap-1">
+        {page > 1 && <Link href={hrefFor(page - 1)} className="btn btn-secondary btn-sm !px-3"><ChevronLeft aria-hidden className="size-4" /><span className="max-sm:sr-only">Previous</span></Link>}
+        {pageList(page, pages).map((p, i) =>
+          p == null ? (
+            <span key={`gap${i}`} className="px-1 text-ink-muted" aria-hidden>…</span>
+          ) : (
+            <Link
+              key={p}
+              href={hrefFor(p)}
+              aria-current={p === page ? "page" : undefined}
+              className={cx("grid min-h-10 min-w-10 place-items-center rounded-lg px-2 font-semibold num", p === page ? "bg-ink text-white" : "hover:bg-surface-alt", Math.abs(p - page) > 1 && p !== 1 && p !== pages && "max-sm:hidden")}
+            >
+              {p}
+            </Link>
+          ),
+        )}
+        {page < pages && <Link href={hrefFor(page + 1)} className="btn btn-secondary btn-sm !px-3"><span className="max-sm:sr-only">Next</span><ChevronRight aria-hidden className="size-4" /></Link>}
       </div>
-    </div>
+    </nav>
   );
 }
 

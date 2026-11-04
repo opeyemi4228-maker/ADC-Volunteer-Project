@@ -44,7 +44,7 @@ export async function POST(request) {
     if (!phone) continue;
     if (m.type === "text") {
       const text = m.text?.body ?? "";
-      const out = /^(hi|hello|menu|start|join|sannu|bawo|ndewo)\b/i.test(text.trim()) ? openSession("whatsapp", phone) : answer("whatsapp", phone, text);
+      const out = /^(hi|hello|menu|start|join|sannu|bawo|ndewo)\b/i.test(text.trim()) ? await openSession("whatsapp", phone) : await answer("whatsapp", phone, text);
       await send({ channel: "whatsapp", to: phone, body: out.text });
     } else if (m.type === "image") {
       await send({ channel: "whatsapp", to: phone, body: await takePhoto(phone, m.image) });
@@ -54,18 +54,18 @@ export async function POST(request) {
 }
 
 async function takePhoto(phone, image) {
-  const v = volunteerByPhone(phone);
+  const v = await volunteerByPhone(phone);
   if (!v || v.status !== "verified" || !v.group_id) return "Thanks. Photos can be sent once you are a verified member of a group.";
   const token = process.env.WHATSAPP_TOKEN;
   if (!token) return "Thanks. Photo uploads by WhatsApp are not switched on yet. Please use the website.";
   const meta = await fetch(`https://graph.facebook.com/v20.0/${image.id}`, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json());
   const buffer = Buffer.from(await fetch(meta.url, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.arrayBuffer()));
   const keys = await storePhotoBuffer(buffer);
-  const g = one("SELECT state_code, lga_code, ward_code FROM support_groups WHERE id = :id", { id: v.group_id });
-  run(
+  const g = await one("SELECT state_code, lga_code, ward_code FROM support_groups WHERE id = :id", { id: v.group_id });
+  await run(
     `INSERT INTO media_items (id, owner_type, owner_id, group_id, uploaded_by, uploader_name, kind, storage_key, medium_key, thumbnail_key, mime,
        event_name, event_date, state_code, lga_code, ward_code, caption, people_consent_confirmed, file_hash, phash)
-     VALUES (:id, 'group', :g, :g, :by, :name, 'photo', :sk, :mk, :tk, :mime, 'Sent on WhatsApp', date('now'), :s, :l, :w, :cap, 0, :fh, :ph)`,
+     VALUES (:id, 'group', :g, :g, :by, :name, 'photo', :sk, :mk, :tk, :mime, 'Sent on WhatsApp', to_char(current_date, 'YYYY-MM-DD'), :s, :l, :w, :cap, 0, :fh, :ph)`,
     { id: uuid(), g: v.group_id, by: v.phone_hash, name: `${v.first_name} ${v.surname}`, sk: keys.storage_key, mk: keys.medium_key, tk: keys.thumbnail_key, mime: keys.mime, s: g.state_code, l: g.lga_code, w: g.ward_code, cap: String(image.caption ?? "").slice(0, 200) || null, fh: keys.file_hash, ph: keys.phash },
   );
   return "Thanks. Your photo is in your group's gallery, waiting for review. Please make sure no children can be identified.";

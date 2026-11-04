@@ -14,17 +14,17 @@ export async function POST(request) {
   const { phone: raw, code, purpose = "register" } = await body(request);
   const phone = normalizePhone(raw);
   if (!phone) return fail(400, "Enter a Nigerian mobile number.");
-  const result = verifyOtp(phone, code, purpose);
+  const result = await verifyOtp(phone, code, purpose);
   if (!result.ok) return fail(400, result.error, { expired: result.expired });
   await startRegistrantSession(phone);
 
-  const group = groupManagedBy(phone);
-  const volunteer = volunteerByPhone(phone);
+  const group = await groupManagedBy(phone);
+  const volunteer = await volunteerByPhone(phone);
   const drafts = Object.fromEntries(
-    ["group", "volunteer"].map((flow) => {
-      const d = one("SELECT step, data, updated_at FROM drafts WHERE owner_hash = :h AND flow = :f", { h: blind(phone), f: flow });
+    await Promise.all(["group", "volunteer"].map(async (flow) => {
+      const d = await one("SELECT step, data, updated_at FROM drafts WHERE owner_hash = :h AND flow = :f", { h: blind(phone), f: flow });
       return [flow, d ? { step: d.step, data: JSON.parse(d.data), updatedAt: d.updated_at } : null];
-    }),
+    })),
   );
   return ok({
     phone,

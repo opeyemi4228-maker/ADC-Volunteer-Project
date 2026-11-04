@@ -4,7 +4,8 @@ const nextConfig = {
   outputFileTracingIncludes: {
     "/**": ["./public/geo/**/*", "./public/brand/**/*", "./assets/fonts/**/*"],
   },
-  serverExternalPackages: ["sharp", "nodemailer", "pdf-lib", "@pdf-lib/fontkit"],
+  // Loaded by Node at runtime, not bundled: native/WASM code (sharp, the embedded Postgres) and the Postgres driver.
+  serverExternalPackages: ["sharp", "nodemailer", "pdf-lib", "@pdf-lib/fontkit", "pg", "@electric-sql/pglite"],
   poweredByHeader: false,
   async headers() {
     return [
