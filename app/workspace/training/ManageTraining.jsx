@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Film, Link2, Loader2, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
+import Link from "next/link";
+import { Check, ChevronDown, Download, Film, Link2, Loader2, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
 
 import { useAction } from "@/components/workspace/actions";
 import { uploadFile } from "@/components/forms/upload";
 import { videoDuration } from "@/components/workspace/compress";
-import { cx } from "@/components/ui";
+import { cx, dateLabel, fmt } from "@/components/ui";
+import { Avatar, photoUrl } from "@/components/workspace/Avatar";
 
 const VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/3gpp"];
 const MAX_BYTES = 200 * 1024 * 1024;
@@ -16,7 +18,7 @@ const MAX_BYTES = 200 * 1024 * 1024;
  * language. A lesson is created first; then each language's video is uploaded
  * or linked separately, so a lesson can grow one translation at a time.
  */
-export default function ManageTraining({ modules, languages, audiences }) {
+export default function ManageTraining({ modules, downloads = {}, languages, audiences }) {
   const [adding, setAdding] = useState(modules.length === 0);
   return (
     <div className="space-y-4">
@@ -27,7 +29,7 @@ export default function ManageTraining({ modules, languages, audiences }) {
       )}
       {modules.length > 0 && (
         <ol className="space-y-4">
-          {modules.map((m, i) => <ModuleRow key={m.id} m={m} n={i + 1} languages={languages} audiences={audiences} />)}
+          {modules.map((m, i) => <ModuleRow key={m.id} m={m} n={i + 1} languages={languages} audiences={audiences} downloads={downloads[m.id] ?? []} />)}
         </ol>
       )}
     </div>
@@ -70,7 +72,7 @@ function ModuleForm({ audiences, initial, onDone, onCancel }) {
   );
 }
 
-function ModuleRow({ m, n, languages, audiences }) {
+function ModuleRow({ m, n, languages, audiences, downloads }) {
   const [editing, setEditing] = useState(false);
   const [adding, setAdding] = useState(null);
   const { run, busy, error } = useAction();
@@ -132,6 +134,7 @@ function ModuleRow({ m, n, languages, audiences }) {
         })}
       </ul>
       {error && <p role="alert" className="mt-2 text-[14px] font-medium text-danger">{error}</p>}
+      <Downloads rows={downloads} languages={languages} />
       {adding && (
         <VideoForm
           key={adding}
@@ -241,4 +244,41 @@ function VideoInfo({ file }) {
   const mb = (file.size / 1024 / 1024).toFixed(1);
   const dur = secs ? ` · ${Math.floor(secs / 60)}:${String(Math.round(secs % 60)).padStart(2, "0")}` : "";
   return <p className="mt-1 truncate text-[13px] font-medium">{file.name} · {mb} MB{dur}</p>;
+}
+
+/** Who downloaded this lesson: one row per person and language, newest first. */
+function Downloads({ rows, languages }) {
+  const [open, setOpen] = useState(false);
+  const people = new Set(rows.map((r) => r.volunteerId ?? r.name)).size;
+  const lang = (l) => languages.find((x) => x.value === l)?.label ?? l;
+  if (!rows.length) {
+    return <p className="mt-4 flex items-center gap-2 border-t border-line pt-3 text-[13px] text-ink-muted"><Download aria-hidden className="size-4" /> Nobody has downloaded this lesson yet.</p>;
+  }
+  const shown = open ? rows : rows.slice(0, 5);
+  return (
+    <div className="mt-4 border-t border-line pt-3">
+      <h3 className="flex items-center gap-2 text-[13px] font-bold"><Download aria-hidden className="size-4 text-brand-700" /> Downloaded by {fmt(people)} {people === 1 ? "person" : "people"}</h3>
+      <ul className="mt-2 divide-y divide-line rounded-xl border border-line">
+        {shown.map((r) => (
+          <li key={`${r.volunteerId ?? r.name}-${r.language}`} className="flex items-center gap-3 px-3 py-2 text-[13px]">
+            <Avatar src={r.hasPhoto ? photoUrl(r.volunteerId, r.photoUpdatedAt) : null} name={r.name} className="size-8 text-[11px]" />
+            <div className="min-w-0 flex-1">
+              {r.volunteerId ? (
+                <Link href={`/workspace/volunteers/${r.volunteerId}`} className="font-semibold text-brand-800 hover:underline">{r.name}</Link>
+              ) : <span className="font-semibold">{r.name}</span>}
+              <span className="block text-[12px] text-ink-muted">{r.publicId ?? (r.isVolunteer ? "Volunteer" : "Coordinator or admin")} · {lang(r.language)}</span>
+            </div>
+            <span className="shrink-0 text-right text-[12px] text-ink-muted num">
+              {dateLabel(r.last)}{r.times > 1 && <span className="block">{fmt(r.times)} times</span>}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {rows.length > 5 && (
+        <button type="button" onClick={() => setOpen((o) => !o)} className="btn btn-ghost btn-sm mt-1">
+          <ChevronDown aria-hidden className={cx("size-4 transition-transform", open && "rotate-180")} /> {open ? "Show fewer" : `Show all ${fmt(rows.length)}`}
+        </button>
+      )}
+    </div>
+  );
 }

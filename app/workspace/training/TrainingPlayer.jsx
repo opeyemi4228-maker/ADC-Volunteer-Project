@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ExternalLink, PlayCircle } from "lucide-react";
+import { Download, ExternalLink, PlayCircle } from "lucide-react";
 
 import { cx } from "@/components/ui";
 
@@ -42,8 +42,9 @@ export default function TrainingPlayer({ videos, title }) {
           </a>
         )}
       </div>
-      {videos.length > 1 && (
-        <div className="flex flex-wrap gap-1.5 border-b border-line px-4 py-2.5" role="tablist" aria-label="Language">
+      <div className="flex flex-wrap items-center gap-1.5 border-b border-line px-4 py-2.5">
+        {videos.length > 1 && (
+        <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Language">
           {videos.map((x) => (
             <button
               key={x.id}
@@ -60,7 +61,15 @@ export default function TrainingPlayer({ videos, title }) {
             </button>
           ))}
         </div>
-      )}
+        )}
+        {v.kind === "video" ? (
+          <a href={`/api/v1/training/videos/${v.id}/file?download=1`} download className="btn btn-secondary btn-sm ml-auto">
+            <Download aria-hidden className="size-4" /> Download{videos.length > 1 ? ` (${v.label})` : ""}
+          </a>
+        ) : (
+          <span className="ml-auto text-[12px] text-ink-muted">Online video: watch it here or on the site it is hosted on.</span>
+        )}
+      </div>
     </div>
   );
 }

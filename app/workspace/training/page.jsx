@@ -2,7 +2,7 @@ import { GraduationCap, Languages } from "lucide-react";
 
 import { requireViewer } from "@/lib/guard";
 import { scalar } from "@/lib/db";
-import { trainingFor, audiencesFor, embedUrl } from "@/lib/training";
+import { trainingFor, audiencesFor, embedUrl, downloadsByModule } from "@/lib/training";
 import { TRAINING_LANGUAGES, TRAINING_AUDIENCES, labelOf } from "@/lib/options";
 import { EmptyState, fmt } from "@/components/ui";
 import { PageHeader, Tabs } from "@/components/workspace/ui";
@@ -25,6 +25,7 @@ export default async function TrainingPage({ searchParams }) {
   const canManage = viewer.powers.includes("manage_training");
   const managing = canManage && sp?.view === "manage";
   const { languages, modules } = await trainingFor(viewer, { everything: managing });
+  const downloads = managing ? await downloadsByModule() : {};
 
   // Lessons that exist for this person, but not in any language they chose.
   const elsewhere = managing ? 0 : await scalar(
@@ -39,7 +40,7 @@ export default async function TrainingPage({ searchParams }) {
       <PageHeader
         title="Training"
         description={managing
-          ? "Add lessons and upload or link a video for each language. People only see the languages they speak."
+          ? "Add lessons and upload or link a video for each language. People only see the languages they speak. Each lesson lists who downloaded it."
           : `Lessons in the languages you speak: ${names(languages)}.`}
         actions={!managing && <LanguagePicker current={languages} options={TRAINING_LANGUAGES} />}
       />
@@ -55,7 +56,7 @@ export default async function TrainingPage({ searchParams }) {
       )}
 
       {managing ? (
-        <ManageTraining modules={modules} languages={TRAINING_LANGUAGES} audiences={TRAINING_AUDIENCES} />
+        <ManageTraining modules={modules} downloads={downloads} languages={TRAINING_LANGUAGES} audiences={TRAINING_AUDIENCES} />
       ) : modules.length === 0 ? (
         <EmptyState title={elsewhere ? "No training in your languages yet" : "No training yet"}>
           {elsewhere

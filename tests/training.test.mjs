@@ -97,6 +97,21 @@ test("YouTube links embed; other links do not; only web links are accepted", () 
   assert.equal(training.cleanVideoUrl("youtube.com/watch?v=x"), "https://youtube.com/watch?v=x");
 });
 
+test("downloads are recorded, and the Super Admin sees who downloaded each lesson", async () => {
+  await db.run("INSERT INTO training_videos (id, module_id, language, kind, storage_key, mime) VALUES ('m1-file', 'm2', 'english', 'video', 'media/x.mp4', 'video/mp4')");
+  const video = await training.videoFor(superAdmin, "m1-file");
+  await training.recordDownload(opeyemi, video);
+  await training.recordDownload(opeyemi, video);
+  await training.recordDownload(coordinator, video);
+  const list = (await training.downloadsByModule()).m2;
+  assert.equal(list.length, 2);
+  const ope = list.find((r) => r.isVolunteer);
+  assert.equal(ope.name, "Opeyemi Test");
+  assert.equal(ope.times, 2);
+  assert.match(ope.publicId, /\S/);
+  assert.equal(list.find((r) => !r.isVolunteer).name, "Ward Coordinator");
+});
+
 test("phone call is no longer offered as a way to be reached at registration", async () => {
   assert.ok(!options.CONTACT_CHANNELS.some((c) => c.value === "call"));
   const errors = await reg.validateVolunteer({
