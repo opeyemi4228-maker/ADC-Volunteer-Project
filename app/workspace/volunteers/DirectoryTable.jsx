@@ -8,6 +8,7 @@ import { AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, Copy, X } from "lucide-
 import { VOLUNTEER_ROLES, PVC_STATUS, REGISTRATION_CHANNELS, labelOf } from "@/lib/options";
 import { StatusBadge, cx, dateLabel, fmt } from "@/components/ui";
 import DownloadVolunteers from "@/components/workspace/DownloadVolunteers";
+import { Avatar, photoUrl } from "@/components/workspace/Avatar";
 import { directoryHref } from "./DirectoryFilters";
 
 const SORT_OPTIONS = [
@@ -107,6 +108,7 @@ export default function DirectoryTable({ rows, total, page, per, sizes, query, d
         {rows.map((v) => (
           <li key={v.id} className={cx("card flex gap-3 p-3", selected.has(v.id) && "border-brand-600 bg-brand-50/50")}>
             {selectable && <input type="checkbox" aria-label={`Select ${v.first_name} ${v.surname}`} checked={selected.has(v.id)} onChange={() => toggle(v.id)} className="mt-1 size-5 shrink-0 accent-brand-700" />}
+            <Avatar src={v.has_photo ? photoUrl(v.id, v.photo_updated_at) : null} name={`${v.first_name} ${v.surname}`} className="size-10 text-[13px]" />
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-2">
                 <Link href={`/workspace/volunteers/${v.id}`} className="min-w-0 font-semibold text-brand-800 hover:underline">{v.first_name} {v.surname}</Link>
@@ -149,10 +151,15 @@ export default function DirectoryTable({ rows, total, page, per, sizes, query, d
                     <input type="checkbox" aria-label={`Select ${v.first_name} ${v.surname}`} checked={selected.has(v.id)} onChange={() => toggle(v.id)} className="mt-0.5 size-4 accent-brand-700" />
                   </td>
                 )}
-                <td className="min-w-44">
-                  <Link href={`/workspace/volunteers/${v.id}`} className="font-semibold text-brand-800 hover:underline">{v.first_name} {v.surname}</Link>
-                  <div className="whitespace-nowrap text-[13px] text-ink-muted num">{v.public_id}{v.age != null && <> · {GENDER_SHORT[v.gender] ? `${GENDER_SHORT[v.gender]}, ` : ""}{v.age}</>}</div>
-                  {v.flags > 0 && <div className="mt-1 inline-flex items-center gap-1 text-[12px] font-semibold text-warning"><AlertTriangle aria-hidden className="size-3.5" /> Possible duplicate</div>}
+                <td className="min-w-52">
+                  <div className="flex items-start gap-3">
+                    <Avatar src={v.has_photo ? photoUrl(v.id, v.photo_updated_at) : null} name={`${v.first_name} ${v.surname}`} className="mt-0.5 size-9 text-[12px]" />
+                    <div className="min-w-0">
+                      <Link href={`/workspace/volunteers/${v.id}`} className="font-semibold text-brand-800 hover:underline">{v.first_name} {v.surname}</Link>
+                      <div className="whitespace-nowrap text-[13px] text-ink-muted num">{v.public_id}{v.age != null && <> · {GENDER_SHORT[v.gender] ? `${GENDER_SHORT[v.gender]}, ` : ""}{v.age}</>}</div>
+                      {v.flags > 0 && <div className="mt-1 inline-flex items-center gap-1 text-[12px] font-semibold text-warning"><AlertTriangle aria-hidden className="size-3.5" /> Possible duplicate</div>}
+                    </div>
+                  </div>
                 </td>
                 {showPhone && <td className="hidden whitespace-nowrap text-[14px] num 2xl:table-cell">{v.phone}{v.phone_verified_at ? "" : <div className="text-[12px] text-ink-muted">Not confirmed</div>}</td>}
                 <td className="min-w-32 text-[14px]">

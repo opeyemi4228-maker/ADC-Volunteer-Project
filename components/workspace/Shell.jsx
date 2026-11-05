@@ -6,12 +6,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   LayoutDashboard, ShieldCheck, HandHeart, CalendarCheck, Images, ListTodo, Send, Map, Vote, ClipboardList,
   FileDown, Settings, LogOut, Menu, X, ExternalLink, UserPlus, IdCard, Award, KeyRound, Search, Bell,
-  PanelLeftClose, PanelLeftOpen, ChevronDown, ArrowRight, CheckCircle2, Share2, Check, Radio, CornerDownLeft, UsersRound,
+  PanelLeftClose, PanelLeftOpen, ChevronDown, ArrowRight, CheckCircle2, Share2, Check, Radio, CornerDownLeft, UsersRound, GraduationCap,
 } from "lucide-react";
 
 import { useT } from "@/lib/i18n/client";
 import { Logo, cx } from "@/components/ui";
 import LanguageSwitch from "@/components/site/LanguageSwitch";
+import { Avatar } from "@/components/workspace/Avatar";
 
 /** The admin menu, in groups. Settings sits at the foot of the sidebar with the other account links. */
 const NAV = [
@@ -27,6 +28,7 @@ const NAV = [
     { href: "/workspace/media", label: "Media library", icon: Images, power: "view_media", count: "media" },
     { href: "/workspace/tasks", label: "Tasks", icon: ListTodo, anyOf: ["assign_tasks", "view_media"] },
     { href: "/workspace/messages", label: "Messages", icon: Send, power: "message", count: "messages" },
+    { href: "/workspace/training", label: "Training", icon: GraduationCap },
   ] },
   { group: "Operations", items: [
     { href: "/workspace/election", label: "Election day", icon: Vote, power: "election" },
@@ -47,6 +49,7 @@ const VOLUNTEER_NAV = [
     { href: "/workspace/my/activities", label: "My activities", icon: CalendarCheck },
     { href: "/workspace/my/media", label: "Photos and videos", icon: Images },
     { href: "/workspace/my/messages", label: "Messages", icon: Send, count: "inbox" },
+    { href: "/workspace/training", label: "Training", icon: GraduationCap },
   ] },
   { group: "My record", items: [
     { href: "/workspace#id-card-title", label: "My ID card", icon: IdCard, match: "never" },
@@ -66,7 +69,6 @@ const ALERTS = [
 ];
 
 const allowed = (viewer) => (n) => (!n.power || viewer.powers.includes(n.power)) && (!n.anyOf || n.anyOf.some((p) => viewer.powers.includes(p)));
-const initials = (name = "") => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "?";
 
 /** Closes a popover on outside click and Escape. */
 function useDismiss(open, setOpen, ref) {
@@ -439,7 +441,7 @@ function AccountMenu({ viewer, areaLabel, volunteerMode, onSignOut, t }) {
   return (
     <div ref={ref} className="relative">
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="true" className="flex items-center gap-2.5 rounded-full p-0.5 pr-1 transition-colors hover:bg-surface-alt sm:pr-2.5">
-        <span aria-hidden className="grid size-9 place-items-center rounded-full bg-gradient-to-br from-brand-500 to-brand-800 text-[13px] font-bold text-white ring-2 ring-white">{initials(viewer.name)}</span>
+        <Avatar src={viewer.photo} name={viewer.name} className="size-9 text-[13px] ring-2 ring-white" />
         <span className="hidden min-w-0 text-left leading-tight md:block">
           <span className="block max-w-[160px] truncate text-[13px] font-semibold">{viewer.name}</span>
           <span className="block max-w-[160px] truncate text-[11px] text-ink-muted">{role}</span>

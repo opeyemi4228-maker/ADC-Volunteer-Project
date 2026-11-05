@@ -10,10 +10,12 @@ import { open } from "@/lib/crypto";
 import { placeLabel, puOf } from "@/lib/geo";
 import { formatPhone } from "@/lib/validate";
 import { certificateNumber } from "@/lib/certificate";
-import { VOLUNTEER_ROLES, LANGUAGES, AVAILABILITY, CONTACT_CHANNELS, PVC_STATUS, labelOf } from "@/lib/options";
+import { VOLUNTEER_ROLES, LANGUAGES, AVAILABILITY, CONTACT_CHANNEL_LABELS, PVC_STATUS, labelOf } from "@/lib/options";
 import { Logo, StatusBadge, dateLabel, cx, fmt } from "@/components/ui";
 import { Panel, StatCard } from "@/components/workspace/charts/Dash";
 import { volunteerContext, portalSummary } from "@/lib/volunteer-portal";
+import ProfilePhoto from "@/components/workspace/ProfilePhoto";
+import { Avatar, photoUrl } from "@/components/workspace/Avatar";
 import PrintCard from "./PrintCard";
 import CopyLink from "./CopyLink";
 
@@ -50,6 +52,7 @@ export default async function VolunteerHome({ viewer, volunteerId }) {
   const days = Math.max(0, Math.floor((Date.now() - new Date(String(v.created_at).replace(" ", "T")).getTime()) / 86400000));
   const roleNames = roles.map((r) => labelOf(VOLUNTEER_ROLES, r));
   const work = await portalSummary(await volunteerContext(v.id));
+  const photo = v.photo_thumb_key ? photoUrl(v.id, v.photo_updated_at) : null;
 
   const steps = [
     { label: "Registered", done: true, when: dateLabel(v.created_at) },
@@ -66,13 +69,12 @@ export default async function VolunteerHome({ viewer, volunteerId }) {
     <div className="space-y-4">
       {/* Greeting */}
       <header className="mb-6 flex flex-wrap items-center gap-4">
-        <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-800 text-[20px] font-bold text-white shadow-[0_8px_20px_-10px_rgb(10_115_56/0.8)]" aria-hidden>
-          {v.first_name[0]}{v.surname[0]}
-        </div>
+        <ProfilePhoto src={photo} name={`${v.first_name} ${v.surname}`} />
         <div className="min-w-0 flex-1">
           <p className="text-[13px] font-bold uppercase tracking-wider text-brand-700">My volunteer dashboard</p>
           <h1 className="h-page break-words">Welcome back, {v.first_name}</h1>
           <p className="mt-0.5 text-[14px] text-ink-muted"><span className="font-mono font-semibold text-ink">{v.public_id}</span> · {place}</p>
+          {!photo && <p className="mt-1 text-[12px] font-medium text-brand-700">Tap the picture to add your photo. It appears on your ID card.</p>}
         </div>
         <div className="flex w-full flex-wrap gap-2 sm:w-auto">
           <a href="#id-card-title" className="btn btn-secondary btn-sm"><IdCard aria-hidden className="size-4" /> My ID card</a>
@@ -256,7 +258,7 @@ export default async function VolunteerHome({ viewer, volunteerId }) {
                 [MapPin, "Polling unit", pu?.name ?? "Not chosen yet"],
                 [Languages, "Languages", languages.map((l) => labelOf(LANGUAGES, l)).join(", ") || "—"],
                 [CalendarClock, "Usually free", labelOf(AVAILABILITY, v.availability) || "—"],
-                [MessageCircle, "Best way to reach you", labelOf(CONTACT_CHANNELS, v.preferred_channel) || "—"],
+                [MessageCircle, "Best way to reach you", labelOf(CONTACT_CHANNEL_LABELS, v.preferred_channel) || "—"],
                 [IdCard, "PVC", labelOf(PVC_STATUS, v.pvc_status) || "—"],
               ].map(([Icon, k, val]) => (
                 <div key={k} className="flex min-w-0 items-start gap-3 rounded-xl border border-line p-3">
@@ -293,6 +295,7 @@ export default async function VolunteerHome({ viewer, volunteerId }) {
               <div aria-hidden className="h-1 bg-accent-500" />
               <div className="flex gap-4 p-4">
                 <div className="min-w-0 flex-1 space-y-2.5">
+                  {photo && <Avatar src={photoUrl(v.id, v.photo_updated_at, "medium")} name={name} className="h-[88px] w-[72px]" rounded="rounded-lg ring-1 ring-line" />}
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">Name</p>
                     <p className="break-words text-[16px] font-bold leading-tight">{name}</p>

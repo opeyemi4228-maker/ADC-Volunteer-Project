@@ -8,6 +8,7 @@ import { areaName } from "@/lib/geo";
 import { ROLE_LABELS, SUPERVISING_BODY, DIRECTORATES, labelOf } from "@/lib/options";
 import { volunteerContext, tasksFor } from "@/lib/volunteer-portal";
 import WorkspaceShell from "@/components/workspace/Shell";
+import { photoUrl } from "@/components/workspace/Avatar";
 import "./workspace.css";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +26,7 @@ export default async function WorkspaceLayout({ children }) {
   const can = (p) => viewer.powers.includes(p);
   let counts;
   let areaLabel;
+  let photo = null;
   if (volunteerMode) {
     // A volunteer's badges: tasks still waiting for their report, and this week's messages.
     const me = await volunteerContext(home.code);
@@ -40,6 +42,7 @@ export default async function WorkspaceLayout({ children }) {
       : [0, 0];
     counts = { tasks: me?.canReport ? tasks : 0, inbox };
     areaLabel = me?.public_id ?? "";
+    photo = me?.photo_thumb_key ? photoUrl(me.id, me.photo_updated_at) : null;
   } else {
     // The Super Admin's waiting counts, fetched together.
     const [verify, media, activities, exports, messages] = await Promise.all([
@@ -57,7 +60,7 @@ export default async function WorkspaceLayout({ children }) {
 
   return (
     <WorkspaceShell
-      viewer={{ name: viewer.name, powers: viewer.powers, roles: [...new Set(viewer.roles.map((r) => ROLE_LABELS[r.role] ?? r.role))] }}
+      viewer={{ name: viewer.name, photo, powers: viewer.powers, roles: [...new Set(viewer.roles.map((r) => ROLE_LABELS[r.role] ?? r.role))] }}
       areaLabel={areaLabel}
       counts={counts}
       electionOn={await getSetting("election_day_enabled", false)}

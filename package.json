@@ -15,6 +15,7 @@
     "db:setup": "node --env-file=.env.production scripts/db-setup.mjs",
     "db:migrate": "node --env-file=.env.production scripts/db-setup.mjs --migrate-only",
     "db:seed": "node --env-file=.env.production scripts/db-seed.mjs",
+    "admin:create": "node --env-file=.env.production scripts/create-admin.mjs",
     "db:clean": "node --env-file=.env.production scripts/db-clean.mjs",
     "test": "node --test \"tests/*.test.mjs\""
   },

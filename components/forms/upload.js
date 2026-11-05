@@ -8,8 +8,8 @@ import { api } from "./api";
  * different offset (a chunk landed but its reply was lost), so we carry on
  * from there instead of starting again.
  */
-export async function uploadFile(file, onProgress = () => {}) {
-  const created = await api("/media/uploads", { method: "POST", body: { name: file.name, type: file.type, size: file.size } });
+export async function uploadFile(file, onProgress = () => {}, { purpose } = {}) {
+  const created = await api("/media/uploads", { method: "POST", body: { name: file.name, type: file.type, size: file.size, purpose } });
   if (!created.ok) return { error: created.error };
   const { id, chunkSize } = created.data;
   let offset = created.data.offset ?? 0;

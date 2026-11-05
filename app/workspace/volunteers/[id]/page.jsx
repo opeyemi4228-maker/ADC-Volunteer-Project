@@ -8,11 +8,12 @@ import { getVolunteer } from "@/lib/workspace-data";
 import { audit } from "@/lib/audit";
 import { ageOn } from "@/lib/validate";
 import { METHODS } from "@/lib/verify";
-import { VOLUNTEER_ROLES, LANGUAGES, AVAILABILITY, CONTACT_CHANNELS, PVC_STATUS, GENDERS, ACTIVITY_TYPES, labelOf } from "@/lib/options";
+import { VOLUNTEER_ROLES, LANGUAGES, AVAILABILITY, CONTACT_CHANNEL_LABELS, PVC_STATUS, GENDERS, ACTIVITY_TYPES, labelOf } from "@/lib/options";
 import { Card, StatusBadge, dateLabel, fmt, timeAgo } from "@/components/ui";
 import { PageHeader, DefList } from "@/components/workspace/ui";
 import { DecisionPanel, ApiButton } from "@/components/workspace/actions";
 import AccountControl from "@/components/workspace/AccountControl";
+import { Avatar, photoUrl } from "@/components/workspace/Avatar";
 import { volunteerActivity } from "@/lib/volunteer-portal";
 
 export const metadata = { title: "Volunteer" };
@@ -57,7 +58,19 @@ export default async function VolunteerProfile({ params }) {
       <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
         <div className="space-y-6">
           <Card className="p-5">
-            <h2 className="h-section mb-4">About</h2>
+            <div className="mb-4 flex items-center gap-4">
+              {v.photo_key ? (
+                <a href={photoUrl(v.id, v.photo_updated_at, "medium")} target="_blank" rel="noreferrer" title="Open the full photo">
+                  <Avatar src={photoUrl(v.id, v.photo_updated_at, "medium")} name={`${v.first_name} ${v.surname}`} className="size-24" rounded="rounded-2xl ring-1 ring-line" />
+                </a>
+              ) : (
+                <Avatar name={`${v.first_name} ${v.surname}`} className="size-24 text-[28px]" rounded="rounded-2xl" />
+              )}
+              <div className="min-w-0">
+                <h2 className="h-section">About</h2>
+                <p className="mt-0.5 text-[13px] text-ink-muted">{v.photo_key ? `Photo added by the volunteer${v.photo_updated_at ? ` on ${dateLabel(v.photo_updated_at)}` : ""}.` : "No photo yet. Volunteers add their own from their dashboard."}</p>
+              </div>
+            </div>
             <DefList
               items={[
                 ["Gender", labelOf(GENDERS, v.gender)],
@@ -66,7 +79,7 @@ export default async function VolunteerProfile({ params }) {
                 ["Phone", v.phoneE164 ? <a key="p" href={`tel:${v.phoneE164}`} className="inline-flex items-center gap-1 font-semibold text-brand-700"><Phone aria-hidden className="size-4" />{v.phone}</a> : v.phone],
                 ["Phone confirmed", v.phone_verified_at ? `Yes, ${dateLabel(v.phone_verified_at)}` : "No. Confirm by calling before verifying."],
                 ["Email", v.email ? <a key="e" href={`mailto:${v.email}`} className="inline-flex items-center gap-1 font-semibold text-brand-700"><Mail aria-hidden className="size-4" />{v.email}</a> : ""],
-                ["Best way to reach", labelOf(CONTACT_CHANNELS, v.preferred_channel)],
+                ["Best way to reach", labelOf(CONTACT_CHANNEL_LABELS, v.preferred_channel)],
                 ["Registered", `${dateLabel(v.created_at)} via ${CHANNEL[v.registration_channel] ?? v.registration_channel}`],
                 v.verified_at && ["Verified", `${dateLabel(v.verified_at)} · ${METHODS[v.verification_method] ?? ""}`],
                 v.status_reason && ["Note", v.status_reason],
