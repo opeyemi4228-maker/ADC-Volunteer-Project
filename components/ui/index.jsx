@@ -156,6 +156,23 @@ export function pct(part, whole) {
   return `${n}%`;
 }
 
+/** "5 Nov 2026, 14:32" in West Africa Time, the same on the server and in the browser. */
+export function dateTimeLabel(value) {
+  if (!value) return "";
+  const d = new Date(String(value).includes(" ") ? `${String(value).replace(" ", "T")}Z` : value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleString("en-GB", { timeZone: "Africa/Lagos", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
+/** A length of time: "45s", "12m 05s", "1h 02m". */
+export function durationLabel(totalSeconds) {
+  const s = Math.max(0, Math.round(totalSeconds ?? 0));
+  if (s < 60) return `${s}s`;
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  return h ? `${h}h ${String(m).padStart(2, "0")}m` : `${m}m ${String(s % 60).padStart(2, "0")}s`;
+}
+
 export function dateLabel(value, opts = { day: "numeric", month: "short", year: "numeric" }) {
   if (!value) return "";
   const d = new Date(value.length === 7 ? `${value}-01T00:00:00` : value.includes(" ") ? `${value.replace(" ", "T")}Z` : value.length === 10 ? `${value}T00:00:00` : value);

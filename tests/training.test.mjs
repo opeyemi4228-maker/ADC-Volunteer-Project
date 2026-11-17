@@ -131,3 +131,72 @@ test("phone numbers and volunteer IDs are unique keys", async () => {
   const unique = cols.map((c) => c.col);
   for (const c of ["id", "phone_hash", "public_id"]) assert.ok(unique.includes(c), `${c} should be unique`);
 });
+
+test("each viewing is recorded with the time actually watched, and finishing needs 90% played", async () => {
+  const video = await training.videoFor(opeyemi, "m1-hausa");
+  const first = await training.startView(opeyemi, video);
+  // Seeking to the end (furthest 600) after 30 seconds of playing is not finishing.
+  assert.deepEqual(await training.updateView(opeyemi, first, { seconds: 30, position: 600, duration: 600, ended: true }), { completed: false });
+  // Values never go down, and someone else can not update this viewing.
+  await training.updateView(opeyemi, first, { seconds: 10, position: 5, duration: 600 });
+  assert.equal(await training.updateView(coordinator, first, { seconds: 600 }), null);
+  const row = await db.one("SELECT seconds_watched, furthest FROM training_views WHERE id = :id", { id: first });
+  assert.deepEqual([row.seconds_watched, row.furthest], [30, 600]);
+
+  const second = await training.startView(opeyemi, video);
+  assert.deepEqual(await training.updateView(opeyemi, second, { seconds: 545, position: 600, duration: 600, ended: true }), { completed: true });
+
+  const views = (await training.trainingReport()).m1.views;
+  const ope = views.find((p) => p.isVolunteer);
+  assert.equal(ope.times, 2);
+  assert.equal(ope.seconds, 575);
+  assert.equal(ope.completed, true);
+  assert.equal(ope.sessions.length, 2);
+  assert.match(ope.sessions[0].at, /^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d$/);
+});
+
+test("feedback questions are checked, and can be written in several languages", () => {
+  const { errors } = training.questionErrors([{ kind: "choice", prompt: {}, options: [{ english: "A" }] }]);
+  assert.match(errors.q0, /at least one language/);
+  const two = training.questionErrors([{ kind: "choice", prompt: { english: "Ready?" }, options: [{ english: "Yes" }] }]);
+  assert.match(two.errors.q0, /between 2 and 6/);
+  const ok = training.questionErrors([{ kind: "text", prompt: { english: "What did you learn?", yoruba: "Kí lo kọ́?", klingon: "x" } }]);
+  assert.deepEqual(ok.errors, {});
+  assert.deepEqual(Object.keys(ok.questions[0].prompt), ["english", "yoruba"]);
+  assert.equal(training.localized({ english: "Hello", yoruba: "Ẹ n lẹ" }, "yoruba"), "Ẹ n lẹ");
+  assert.equal(training.localized({ english: "Hello" }, "hausa"), "Hello");
+});
+
+test("feedback is answered once per lesson, in any language, and counted across languages", async () => {
+  const { questions } = training.questionErrors([
+    { id: "q-ready-0001", kind: "choice", prompt: { english: "Do you feel ready?", yoruba: "Ṣé o ti ṣetán?" }, options: [{ english: "Yes", yoruba: "Bẹ́ẹ̀ni" }, { english: "No", yoruba: "Rárá" }] },
+    { id: "q-learnt-0001", kind: "text", prompt: { english: "What did you learn?" }, required: false },
+  ]);
+  await training.saveQuestions("m1", questions);
+  assert.equal((await training.questionsFor(["m1"])).m1.length, 2);
+
+  // The coordinator hasn't watched yet.
+  assert.match((await training.submitFeedback(coordinator, "m1", "english", { "q-ready-0001": 0 })).error, /Watch the video first/);
+  await training.startView(coordinator, await training.videoFor(coordinator, "m1-english"));
+
+  // Required questions must be answered; an option outside the list is refused.
+  assert.ok((await training.submitFeedback(opeyemi, "m1", "hausa", {})).errors["q-ready-0001"]);
+  assert.ok((await training.submitFeedback(opeyemi, "m1", "hausa", { "q-ready-0001": 7 })).errors["q-ready-0001"]);
+
+  assert.deepEqual(await training.submitFeedback(opeyemi, "m1", "hausa", { "q-ready-0001": 0, "q-learnt-0001": "Arrive early" }), { ok: true });
+  // Answering again, in English this time, is refused: one answer covers every language.
+  const again = await training.submitFeedback(opeyemi, "m1", "english", { "q-ready-0001": 1 });
+  assert.match(again.error, /already answered/);
+  assert.equal(again.answered.language, "hausa");
+  assert.deepEqual(await training.submitFeedback(coordinator, "m1", "english", { "q-ready-0001": 0 }), { ok: true });
+
+  const progress = await training.progressFor(opeyemi, ["m1", "m2"]);
+  assert.equal(progress.m1.answered.language, "hausa");
+  assert.equal(progress.m1.completed, true);
+  assert.equal(progress.m2.watched, false);
+
+  const r = (await training.trainingReport()).m1;
+  assert.equal(r.totals.responses, 2);
+  // Both chose option 0 ("Yes" / "Bẹ́ẹ̀ni"), answered in different languages.
+  assert.deepEqual(r.responses.map((a) => a.answers["q-ready-0001"]), [0, 0]);
+});
