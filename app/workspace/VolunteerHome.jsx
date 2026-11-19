@@ -3,6 +3,7 @@ import QRCode from "qrcode";
 import {
   Check, Clock, CircleHelp, XCircle, Download, ShieldCheck, Lock, CalendarDays, HandHeart, IdCard, Award,
   Phone, Mail, MapPin, Languages, CalendarClock, MessageCircle, BadgeCheck, ExternalLink, PhoneCall,
+  Landmark, GraduationCap, UsersRound,
 } from "lucide-react";
 
 import { all, one } from "@/lib/db";
@@ -14,6 +15,7 @@ import { VOLUNTEER_ROLES, LANGUAGES, AVAILABILITY, CONTACT_CHANNEL_LABELS, PVC_S
 import { Logo, StatusBadge, dateLabel, cx, fmt } from "@/components/ui";
 import { Panel, StatCard } from "@/components/workspace/charts/Dash";
 import { volunteerContext, portalSummary } from "@/lib/volunteer-portal";
+import { VOLUNTEER_BENEFITS } from "@/lib/benefits";
 import ProfilePhoto from "@/components/workspace/ProfilePhoto";
 import { Avatar, photoUrl } from "@/components/workspace/Avatar";
 import PrintCard from "./PrintCard";
@@ -360,8 +362,28 @@ export default async function VolunteerHome({ viewer, volunteerId }) {
               ))}
             </ol>
           </Panel>
+
+          <Panel id="benefits" title="Benefits of volunteering with ADC">
+            <ol className="space-y-3.5">
+              {VOLUNTEER_BENEFITS.map((b) => {
+                const Icon = BENEFIT_ICONS[b.key];
+                return (
+                  <li key={b.key} className="flex gap-3">
+                    <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700"><Icon aria-hidden className="size-4" /></span>
+                    <span className="min-w-0">
+                      <span className="block text-[14px] font-semibold leading-5">{b.title}</span>
+                      <span className="block text-[12px] leading-[18px] text-ink-muted">{b.body}</span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
+            {!verified && <p className="mt-4 border-t border-line pt-3 text-[12px] text-ink-muted">Your certificate unlocks once you&apos;re verified. Watch the lessons in the Training tab meanwhile.</p>}
+          </Panel>
         </div>
       </div>
     </div>
   );
 }
+
+const BENEFIT_ICONS = { transformation: Landmark, skills: GraduationCap, certification: Award, networks: UsersRound };

@@ -91,6 +91,17 @@ test("CSV downloads: UTF-8 mark, watermark on every row, formulas neutralised", 
   assert.ok(f.personal);
 });
 
+test("the Account details preset downloads account columns for the filtered volunteers", async () => {
+  const admin = asViewer("national_admin", "NG");
+  const cols = (await import("../lib/volunteer-columns.js")).COLUMN_PRESETS.find((p) => p.key === "account").columns.join(",");
+  const f = await exp.volunteerFile(admin, { area: "FCT" }, { columns: cols, format: "csv", ref: "t" });
+  const lines = f.body.trim().split("\n");
+  assert.match(lines[1], /^Volunteer ID,First name,Surname,Phone,Email,State,LGA,Status,Registered on,Sign-in account,Account created,Last signed in,Profile photo,Training videos downloaded,Exported for$/);
+  assert.equal(lines.length, 2 + 3);
+  // These test volunteers registered without a sign-in account.
+  assert.ok(lines.slice(2).every((l) => l.includes(",None,,,No,0,")));
+});
+
 test("Excel downloads are a valid workbook with the rows and an About sheet", async () => {
   const admin = asViewer("national_admin", "NG");
   const f = await exp.volunteerFile(admin, {}, { columns: "public_id,first_name,age", format: "xlsx", ref: "t" });

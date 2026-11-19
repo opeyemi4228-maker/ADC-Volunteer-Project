@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight, ArrowUpRight, Phone, MapPin, ListChecks, Vote, ClipboardCheck, Megaphone, DoorOpen, Smartphone, Truck,
-  CalendarDays, Scale, Stethoscope, Laptop, ShieldCheck, HandCoins, Check, BadgeCheck,
+  CalendarDays, Scale, Stethoscope, Laptop, ShieldCheck, HandCoins, Check, BadgeCheck, Landmark, GraduationCap, Award, UsersRound,
 } from "lucide-react";
 
 import { getT } from "@/lib/i18n/server";
@@ -10,6 +10,7 @@ import { all, scalar } from "@/lib/db";
 import { publicMomentum } from "@/lib/queries";
 import { fmt } from "@/components/ui";
 import { VOLUNTEER_ROLES } from "@/lib/options";
+import { VOLUNTEER_BENEFITS } from "@/lib/benefits";
 import DotMap from "@/components/site/DotMap";
 import AreaFinder from "./AreaFinder";
 import { SIGN_IN_OPEN } from "@/lib/features";
@@ -201,6 +202,33 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ── Benefits of volunteering: four numbered reasons ──────────────── */}
+      <section id="benefits" className="container-page reveal scroll-mt-24 pt-24 sm:pt-32">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <h2 className="max-w-2xl text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-balance sm:text-[2.75rem]">{t("Benefits of Volunteering with ADC")}</h2>
+          <Link href="/volunteer" className="inline-flex items-center gap-1.5 text-[16px] font-semibold text-brand-700 hover:underline">
+            {t("Become a volunteer")} <ArrowRight aria-hidden className="size-4" />
+          </Link>
+        </div>
+        <ol className="mt-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          {VOLUNTEER_BENEFITS.map((b, i) => {
+            const Icon = BENEFIT_ICONS[b.key];
+            return (
+              <li key={b.key} className="flex flex-col rounded-3xl bg-white p-7 ring-1 ring-line sm:p-8">
+                <span className="flex items-center justify-between">
+                  <span className="grid size-12 place-items-center rounded-full bg-brand-50 text-brand-700">
+                    <Icon aria-hidden className="size-6" strokeWidth={2} />
+                  </span>
+                  <span className="num text-[44px] font-bold leading-none tracking-tight text-line" aria-hidden>{i + 1}</span>
+                </span>
+                <h3 className="mt-6 text-[1.25rem] font-bold leading-tight tracking-[-0.02em]">{t(b.title)}</h3>
+                <p className="mt-3 text-[16px] leading-[1.65] text-ink-muted">{t(b.body)}</p>
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+
       {/* ── Callout: one bold statement and one thing to do (Labour's red card, in ADC green) ── */}
       <section className="container-page reveal pt-24 sm:pt-32">
         <div className="grid gap-10 rounded-[28px] bg-brand-700 p-7 text-white sm:p-12 lg:grid-cols-[1fr_1.1fr] lg:gap-16 lg:p-16">
@@ -296,6 +324,8 @@ export default async function HomePage() {
     </>
   );
 }
+
+const BENEFIT_ICONS = { transformation: Landmark, skills: GraduationCap, certification: Award, networks: UsersRound };
 
 /** One promise: icon, bold title, one sentence. */
 function Promise({ icon: Icon, title, children }) {
