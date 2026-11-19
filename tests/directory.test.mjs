@@ -91,15 +91,34 @@ test("CSV downloads: UTF-8 mark, watermark on every row, formulas neutralised", 
   assert.ok(f.personal);
 });
 
-test("the Account details preset downloads account columns for the filtered volunteers", async () => {
+test("the Sign-in and training preset downloads account columns for the filtered volunteers", async () => {
   const admin = asViewer("national_admin", "NG");
-  const cols = (await import("../lib/volunteer-columns.js")).COLUMN_PRESETS.find((p) => p.key === "account").columns.join(",");
+  const cols = (await import("../lib/volunteer-columns.js")).COLUMN_PRESETS.find((p) => p.key === "signin").columns.join(",");
   const f = await exp.volunteerFile(admin, { area: "FCT" }, { columns: cols, format: "csv", ref: "t" });
   const lines = f.body.trim().split("\n");
   assert.match(lines[1], /^Volunteer ID,First name,Surname,Phone,Email,State,LGA,Status,Registered on,Sign-in account,Account created,Last signed in,Profile photo,Training videos downloaded,Exported for$/);
   assert.equal(lines.length, 2 + 3);
   // These test volunteers registered without a sign-in account.
   assert.ok(lines.slice(2).every((l) => l.includes(",None,,,No,0,")));
+});
+
+test("Account details: filter by bank details given, and download bank columns", async () => {
+  const admin = asViewer("national_admin", "NG");
+  const one = (await data.volunteerRows(admin, { area: "FCT" })).rows[0];
+  await reg.saveBankAccounts(one.id, [{ bank: "Access Bank", number: "0123456789", name: "ADA OBI" }]);
+  const withBank = await data.volunteerRows(admin, { area: "FCT", bank: "yes" });
+  assert.deepEqual(withBank.rows.map((r) => r.id), [one.id]);
+  const without = await data.volunteerRows(admin, { area: "FCT", bank: "no" });
+  assert.ok(!without.rows.some((r) => r.id === one.id));
+  assert.equal(withBank.total + without.total, (await data.volunteerRows(admin, { area: "FCT" })).total);
+
+  const cols = (await import("../lib/volunteer-columns.js")).COLUMN_PRESETS.find((p) => p.key === "bank").columns.join(",");
+  const f = await exp.volunteerFile(admin, { area: "FCT", bank: "yes" }, { columns: cols, format: "csv", ref: "t" });
+  const lines = f.body.trim().split("\n");
+  assert.match(lines[1], /Bank,Account number,Account name,Second bank,Second account number,Second account name/);
+  assert.equal(lines.length, 3);
+  assert.match(lines[2], /Access Bank,0123456789,ADA OBI,,,/i);
+  assert.ok(f.personal);
 });
 
 test("Excel downloads are a valid workbook with the rows and an About sheet", async () => {

@@ -83,6 +83,7 @@ export default function DirectoryFilters({ query, levels }) {
 
         <div className="min-w-[9rem] flex-1">{select("role", "Role", VOLUNTEER_ROLES)}</div>
         <div className="min-w-[9rem] flex-1">{select("pvc", "PVC", PVC_STATUS)}</div>
+        <div className="min-w-[10rem] flex-1">{select("bank", "Account details", [{ value: "yes", label: "Bank details given" }, { value: "no", label: "No bank details" }])}</div>
 
         <button type="button" onClick={() => setMore(!more)} aria-expanded={more} aria-controls="more-filters" className={cx("btn btn-sm", more || moreCount ? "btn-secondary" : "btn-ghost")}>
           <SlidersHorizontal aria-hidden className="size-4" /> More filters{moreCount ? <span className="num"> ({moreCount})</span> : ""}
