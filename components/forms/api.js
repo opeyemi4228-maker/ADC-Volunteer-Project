@@ -11,18 +11,19 @@ import { captchaToken } from "./captcha";
 /** `captcha`: a reCAPTCHA action name; its token goes in the X-Captcha-Token header. */
 export async function api(path, { method = "GET", body, captcha } = {}) {
   try {
-    const headers = {};
-    if (body) headers["Content-Type"] = "application/json";
-    if (captcha) {
-      const token = await captchaToken(captcha);
-      if (token) headers["X-Captcha-Token"] = token;
-    }
-    const res = await fetch(`/api/v1${path}`, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    const data = await res.json().catch(() => ({}));
+    const send = async () => {
+      const headers = {};
+      if (body) headers["Content-Type"] = "application/json";
+      if (captcha) {
+        const token = await captchaToken(captcha);
+        if (token) headers["X-Captcha-Token"] = token;
+      }
+      const res = await fetch(`/api/v1${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
+      return { res, data: await res.json().catch(() => ({})) };
+    };
+    let { res, data } = await send();
+    // A refused security check gets one quiet retry with a fresh token before the person sees an error.
+    if (captcha && res.status === 403 && data.captcha) ({ res, data } = await send());
     if (!res.ok) return { ok: false, status: res.status, error: data.error ?? "Something went wrong. Try again.", data };
     return { ok: true, status: res.status, data };
   } catch {

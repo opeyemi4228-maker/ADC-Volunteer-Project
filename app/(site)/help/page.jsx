@@ -75,7 +75,7 @@ export default async function HelpPage() {
             <h2 className="h-section">{t("Contact support")}</h2>
             <p className="mt-3 flex items-center gap-3 text-[15px]">
               <Mail aria-hidden className="size-5 shrink-0 text-brand-600" />
-              <a href="mailto:support@adc.example" className="link">support@adc.example</a>
+              <a href="mailto:support@adcvolunteer.org" className="link">support@adcvolunteer.org</a>
             </p>
             <p className="mt-4 text-[14px] text-ink-muted">
               {t("Questions about your data?")} <Link href="/privacy" className="link">{t("Read the privacy notice")}</Link>

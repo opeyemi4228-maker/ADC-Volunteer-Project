@@ -7,6 +7,19 @@ const nextConfig = {
   // Loaded by Node at runtime, not bundled: native/WASM code (sharp, the embedded Postgres) and the Postgres driver.
   serverExternalPackages: ["sharp", "nodemailer", "pdf-lib", "@pdf-lib/fontkit", "pg", "@electric-sql/pglite"],
   poweredByHeader: false,
+  // Visitors on a *.vercel.app address are sent to the real domain: the
+  // reCAPTCHA key only works there, and one address is better for links and
+  // search. /api is left alone so webhooks and scheduled jobs keep working.
+  async redirects() {
+    const site = process.env.SITE_URL;
+    if (process.env.VERCEL_ENV !== "production" || !site || /\.vercel\.app/i.test(site)) return [];
+    return [{
+      source: "/:path((?!api/).*)",
+      has: [{ type: "host", value: ".+\\.vercel\\.app" }],
+      destination: `${site.replace(/\/$/, "")}/:path`,
+      permanent: false,
+    }];
+  },
   async headers() {
     return [
       {
