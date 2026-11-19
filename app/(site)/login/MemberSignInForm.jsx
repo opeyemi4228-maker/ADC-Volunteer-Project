@@ -8,6 +8,7 @@ import { Loader2, MessageSquareText, ShieldCheck } from "lucide-react";
 import { Alert, Card, Field } from "@/components/ui";
 import { useT } from "@/lib/i18n/client";
 import { api } from "@/components/forms/api";
+import { preloadCaptcha } from "@/components/forms/captcha";
 import ScreenCode from "@/components/forms/ScreenCode";
 
 /**
@@ -24,6 +25,7 @@ export default function MemberSignInForm({ demo, initialPhone = "" }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [coordinator, setCoordinator] = useState(false);
+  useEffect(preloadCaptcha, []);
 
   useEffect(() => {
     if (wait <= 0) return;
@@ -36,7 +38,7 @@ export default function MemberSignInForm({ demo, initialPhone = "" }) {
     setBusy(true);
     setError(null);
     setCoordinator(false);
-    const r = await api("/auth/member", { method: "POST", body: { phone } });
+    const r = await api("/auth/member", { method: "POST", body: { phone }, captcha: "member_signin" });
     setBusy(false);
     if (!r.ok) {
       if (r.data.retryAfter) setWait(r.data.retryAfter);

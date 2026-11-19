@@ -4,6 +4,7 @@ import { requestOtp, verifyOtp, startUserSession, pendingUser, completeUserSessi
 import { normalizePhone, normalizeEmail } from "@/lib/validate";
 import { audit } from "@/lib/audit";
 import { ok, fail, body } from "@/lib/http";
+import { captchaDenied } from "@/lib/captcha";
 
 /**
  * Sign-in with an email address or phone number and a password.
@@ -32,6 +33,8 @@ export async function POST(request) {
 
   const recent = await scalar(`SELECT COUNT(*) FROM audit_log WHERE action = 'signin_failed' AND ip = :ip AND "timestamp" > now() - interval '15 minutes'`, { ip });
   if (recent >= 10 && ip !== "local") return fail(429, "Too many attempts. Wait 15 minutes and try again.");
+  const denied = await captchaDenied(request, "signin", ip);
+  if (denied) return denied;
 
   const login = String(input.login ?? input.email ?? input.phone ?? "").trim();
   const email = login.includes("@") ? normalizeEmail(login) : null;

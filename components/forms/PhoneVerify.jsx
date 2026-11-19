@@ -6,6 +6,7 @@ import { Loader2, ShieldCheck, Smartphone } from "lucide-react";
 import { Alert, Field } from "@/components/ui";
 import { useLang, useT } from "@/lib/i18n/client";
 import { api } from "./api";
+import { preloadCaptcha } from "./captcha";
 import ScreenCode from "./ScreenCode";
 
 /**
@@ -22,6 +23,7 @@ export default function PhoneVerify({ purpose = "register", onVerified, intro })
   const [wait, setWait] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  useEffect(preloadCaptcha, []);
 
   useEffect(() => {
     if (wait <= 0) return undefined;
@@ -33,7 +35,7 @@ export default function PhoneVerify({ purpose = "register", onVerified, intro })
     e?.preventDefault();
     setBusy(true);
     setError(null);
-    const r = await api("/auth/otp/request", { method: "POST", body: { phone, purpose, lang } });
+    const r = await api("/auth/otp/request", { method: "POST", body: { phone, purpose, lang }, captcha: "otp_request" });
     setBusy(false);
     if (!r.ok) {
       setError(r.error);

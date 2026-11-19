@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 
 import { Card } from "@/components/ui";
@@ -12,6 +12,7 @@ import QuestionFlow from "@/components/forms/QuestionFlow";
 import BankAccounts from "@/components/forms/BankAccounts";
 import { bankAccountProblems } from "@/lib/banks";
 import { api, loadStates, loadLgas, loadUnits } from "@/components/forms/api";
+import { preloadCaptcha } from "@/components/forms/captcha";
 import { SIGN_IN_OPEN } from "@/lib/features";
 
 const UNKNOWN = "__unknown";
@@ -96,6 +97,7 @@ function buildScreens() {
 export default function VolunteerForm({ role = "" }) {
   const t = useT();
   const [done, setDone] = useState(null);
+  useEffect(preloadCaptcha, []);
   const [initial] = useState(() => ({
     about: {}, vote: {}, consent: {}, bank: { accounts: [{}] },
     help: { roles: VOLUNTEER_ROLES.some((r) => r.value === role) ? [role] : [], languages: [] },
@@ -106,7 +108,7 @@ export default function VolunteerForm({ role = "" }) {
 
   async function submit(d) {
     const body = { ...d, vote: { ...d.vote, pu: d.vote.pu === UNKNOWN ? "" : d.vote.pu, pu_unknown: !d.vote.pu || d.vote.pu === UNKNOWN } };
-    const r = await api("/volunteers", { method: "POST", body });
+    const r = await api("/volunteers", { method: "POST", body, captcha: "register" });
     if (r.ok) {
       setDone(r.data);
       window.scrollTo({ top: 0 });

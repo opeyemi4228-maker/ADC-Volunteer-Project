@@ -6,6 +6,7 @@ import { normalizePhone, normalizeEmail, formatPhone } from "@/lib/validate";
 import { getLang } from "@/lib/i18n/server";
 import { audit } from "@/lib/audit";
 import { ok, fail, body } from "@/lib/http";
+import { captchaDenied } from "@/lib/captcha";
 import { SIGN_IN_OPEN } from "@/lib/features";
 
 /**
@@ -38,6 +39,11 @@ export async function POST(request) {
 
   const phone = normalizePhone(input.phone);
   if (!phone) return fail(422, "Enter the Nigerian mobile number you registered with, e.g. 0803 123 4567.");
+  // The phone step (it sends an SMS and reveals whether a number is registered) needs the bot check.
+  if (!input.code) {
+    const denied = await captchaDenied(request, "member_signin", ip);
+    if (denied) return denied;
+  }
 
   const member = await memberByPhone(phone);
   // The Super Admin and coordinators who are not volunteers have no member

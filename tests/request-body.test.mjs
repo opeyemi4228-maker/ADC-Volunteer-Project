@@ -23,7 +23,7 @@ test('byte ranges support suffixes and reject invalid or unsatisfiable ranges', 
 
 test('production preflight flags missing requirements and retains the explicit OTP exception', () => {
   assert.ok(productionConfig({}).errors.length > 5);
-  const env = { APP_SECRET: 'x'.repeat(48), SITE_URL: 'https://example.com', APP_DATABASE_URL: 'postgres://test', STORAGE_BACKEND: 'r2', R2_ACCOUNT_ID: 'a'.repeat(32), R2_ACCESS_KEY_ID: 'test', R2_SECRET_ACCESS_KEY: 'test', R2_BUCKET: 'private', SMTP_URL: 'smtps://example.com', EMAIL_FROM: 'noreply@example.com', CRON_SECRET: 'x'.repeat(48), SMS_PROVIDER: 'console' };
+  const env = { APP_SECRET: 'x'.repeat(48), SITE_URL: 'https://example.com', APP_DATABASE_URL: 'postgres://test', STORAGE_BACKEND: 'r2', R2_ACCOUNT_ID: 'a'.repeat(32), R2_ACCESS_KEY_ID: 'test', R2_SECRET_ACCESS_KEY: 'test', R2_BUCKET: 'private', SMTP_URL: 'smtps://example.com', EMAIL_FROM: 'noreply@example.com', CRON_SECRET: 'x'.repeat(48), SMS_PROVIDER: 'console', NEXT_PUBLIC_RECAPTCHA_SITE_KEY: 'site', RECAPTCHA_SECRET_KEY: 'secret' };
   assert.deepEqual(productionConfig(env).errors, []);
   assert.equal(productionConfig(env).warnings.length, 1);
   assert.ok(productionConfig({ ...env, DATABASE_URL: 'owner' }).errors.length);

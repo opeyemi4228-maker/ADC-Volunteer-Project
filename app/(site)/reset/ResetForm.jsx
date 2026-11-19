@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 
 import { Alert, Card, Field } from "@/components/ui";
 import { useT } from "@/lib/i18n/client";
 import { api } from "@/components/forms/api";
+import { preloadCaptcha } from "@/components/forms/captcha";
 
 export default function ResetForm({ token }) {
   const t = useT();
@@ -16,12 +17,13 @@ export default function ResetForm({ token }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [done, setDone] = useState(null);
+  useEffect(preloadCaptcha, []);
 
   async function submit(e) {
     e.preventDefault();
     setBusy(true);
     setError(null);
-    const r = await api("/auth/reset", { method: "POST", body: token ? { token, password } : { email } });
+    const r = await api("/auth/reset", { method: "POST", body: token ? { token, password } : { email }, captcha: token ? undefined : "password_reset" });
     setBusy(false);
     if (!r.ok) return setError(r.error);
     setDone(r.data);

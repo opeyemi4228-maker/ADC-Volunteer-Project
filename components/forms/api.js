@@ -1,16 +1,25 @@
 "use client";
 
+import { captchaToken } from "./captcha";
+
 /**
  * Browser-side helpers for the forms: JSON calls to /api/v1, and the INEC
  * register read from the static files in /geo (cached per page load, and by
  * the browser for a week via the Cache-Control header in next.config.mjs).
  */
 
-export async function api(path, { method = "GET", body } = {}) {
+/** `captcha`: a reCAPTCHA action name; its token goes in the X-Captcha-Token header. */
+export async function api(path, { method = "GET", body, captcha } = {}) {
   try {
+    const headers = {};
+    if (body) headers["Content-Type"] = "application/json";
+    if (captcha) {
+      const token = await captchaToken(captcha);
+      if (token) headers["X-Captcha-Token"] = token;
+    }
     const res = await fetch(`/api/v1${path}`, {
       method,
-      headers: body ? { "Content-Type": "application/json" } : undefined,
+      headers,
       body: body ? JSON.stringify(body) : undefined,
     });
     const data = await res.json().catch(() => ({}));

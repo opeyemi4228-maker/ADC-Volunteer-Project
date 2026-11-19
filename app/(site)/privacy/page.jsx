@@ -15,6 +15,7 @@ const SECTIONS = [
   ["Why we use it", "To link you with the coordinators in your ward, LGA and state; to plan campaign activities and polling-unit coverage; and, only if you agree, to send you campaign updates. We never sell your data."],
   ["Legal basis", "Your consent, which you give on the last step of each form and can withdraw at any time. Withdrawing does not affect anything done before."],
   ["Who can see it", "Only coordinators for your own area can see your record, and only as much as their role needs. Phone numbers and emails are encrypted when stored. Every view and export of personal data is logged."],
+  ["Protection from automated sign-ups", "The registration, sign-in and password-reset forms use Google reCAPTCHA to tell people from automated programs. It sends Google information about your browser and how you use the page. Google's Privacy Policy (policies.google.com/privacy) and Terms of Service (policies.google.com/terms) apply."],
   ["How long we keep it", "Until the end of the current election cycle, or until you ask us to delete it, whichever comes first."],
   ["Your rights", "You can ask to see, correct, move or delete your data, or object to how it is used. Email the data protection officer at dpo@adc.example. We respond within 30 days. You can also complain to the Nigeria Data Protection Commission."],
 ];

@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2, LogIn, ShieldCheck } from "lucide-react";
 
 import { Alert, Card, Field } from "@/components/ui";
 import { useT } from "@/lib/i18n/client";
 import { api } from "@/components/forms/api";
+import { preloadCaptcha } from "@/components/forms/captcha";
 import ScreenCode from "@/components/forms/ScreenCode";
 
 export default function SignInForm({ demo, initialLogin = "" }) {
@@ -20,13 +21,14 @@ export default function SignInForm({ demo, initialLogin = "" }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [member, setMember] = useState(false);
+  useEffect(preloadCaptcha, []);
 
   async function first(e) {
     e.preventDefault();
     setBusy(true);
     setError(null);
     setMember(false);
-    const r = await api("/auth/signin", { method: "POST", body: { login, password } });
+    const r = await api("/auth/signin", { method: "POST", body: { login, password }, captcha: "signin" });
     if (!r.ok) {
       setBusy(false);
       if (r.data.member) return setMember(true);

@@ -7,6 +7,7 @@ import { listVolunteers } from "@/lib/queries";
 import { send } from "@/lib/notify";
 import { audit } from "@/lib/audit";
 import { ok, fail, body } from "@/lib/http";
+import { captchaDenied } from "@/lib/captcha";
 
 /**
  * POST /api/v1/volunteers: register a volunteer (Flow B, fast version).
@@ -19,6 +20,8 @@ export async function POST(request) {
   const ip = await clientIp();
   const recent = await scalar(`SELECT COUNT(*) FROM audit_log WHERE action = 'volunteer_registered' AND ip = :ip AND "timestamp" > now() - interval '1 hour'`, { ip });
   if (recent >= 30 && ip !== "local") return fail(429, "Too many registrations from this connection. Try again in an hour.");
+  const denied = await captchaDenied(request, "register", ip);
+  if (denied) return denied;
 
   const d = await body(request);
   const errors = await validateVolunteer(d, { channel: "web" });

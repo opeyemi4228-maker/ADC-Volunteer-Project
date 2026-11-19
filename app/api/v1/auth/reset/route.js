@@ -9,6 +9,7 @@ import { takeRateLimit } from "@/lib/rate-limit";
 import { audit } from "@/lib/audit";
 import { resetPassword } from "@/lib/password-reset";
 import { ok, fail, body } from "@/lib/http";
+import { captchaDenied } from "@/lib/captcha";
 
 /**
  * Password reset by email.
@@ -33,6 +34,8 @@ export async function POST(request) {
 
   const email = normalizeEmail(d.email);
   if (!email) return fail(422, "Enter the email address you registered with.");
+  const denied = await captchaDenied(request, "password_reset", ip);
+  if (denied) return denied;
   if (!await takeRateLimit("password-reset-email", email, 5, 3600)) return ok({ sent: true });
   const user = await one("SELECT id, name FROM users WHERE email_hash = :h AND active = 1", { h: blind(email) });
   let devLink;
