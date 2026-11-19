@@ -77,8 +77,8 @@ export default async function MapPage({ searchParams }) {
       {gaps && (
         <>
           <div className="mb-4 flex flex-wrap gap-2">
-            <Link className="chip" aria-pressed={!onlyGaps} href={withParams("/workspace/map", { area: area.code }, {})}>All {gaps.kind === "ward" ? "wards" : "polling units"}</Link>
-            <Link className="chip" aria-pressed={onlyGaps} href={withParams("/workspace/map", { area: area.code }, { view: "gaps" })}>Gaps only</Link>
+            <Link className="chip" aria-current={!onlyGaps ? "page" : undefined} href={withParams("/workspace/map", { area: area.code }, {})}>All {gaps.kind === "ward" ? "wards" : "polling units"}</Link>
+            <Link className="chip" aria-current={onlyGaps ? "page" : undefined} href={withParams("/workspace/map", { area: area.code }, { view: "gaps" })}>Gaps only</Link>
           </div>
           <Card className="overflow-x-auto">
             <table className="table-clean">

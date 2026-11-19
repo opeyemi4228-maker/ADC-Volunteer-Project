@@ -84,8 +84,8 @@ export default async function VerifyPage({ searchParams }) {
       />
       {tab === "volunteers" && (
         <div className="mb-4 flex flex-wrap gap-2 text-[14px]">
-          <Link href="/workspace/verify?tab=volunteers" className="chip" aria-pressed={!sp.flagged}>All waiting</Link>
-          <Link href="/workspace/verify?tab=volunteers&flagged=1" className="chip" aria-pressed={Boolean(sp.flagged)}>Possible duplicates only</Link>
+          <Link href="/workspace/verify?tab=volunteers" className="chip" aria-current={!sp.flagged ? "page" : undefined}>All waiting</Link>
+          <Link href="/workspace/verify?tab=volunteers&flagged=1" className="chip" aria-current={Boolean(sp.flagged) ? "page" : undefined}>Possible duplicates only</Link>
         </div>
       )}
 

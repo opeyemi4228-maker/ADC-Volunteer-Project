@@ -142,7 +142,7 @@ export default function CoverageMap({ level, stateCode, values, metricLabel, for
           </div>
         )}
       </div>
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] text-ink-muted" aria-label={t("Legend")}>
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] text-ink-muted" role="group" aria-label={t("Legend")}>
         <span className="flex items-center gap-1.5"><span className="inline-block size-3 rounded-sm border border-line" style={{ background: NONE }} /> {t("None")}</span>
         <span className="flex items-center gap-1">
           {t("Low")}

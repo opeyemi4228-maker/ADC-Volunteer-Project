@@ -6,6 +6,7 @@ import { normalizePhone, normalizeEmail, formatPhone } from "@/lib/validate";
 import { getLang } from "@/lib/i18n/server";
 import { audit } from "@/lib/audit";
 import { ok, fail, body } from "@/lib/http";
+import { SIGN_IN_OPEN } from "@/lib/features";
 
 /**
  * Member (volunteer) sign-in: no password. The one-time code sent by SMS to
@@ -28,6 +29,7 @@ async function memberByPhone(phone) {
 }
 
 export async function POST(request) {
+  if (!SIGN_IN_OPEN) return fail(403, "Volunteer sign-in is not open yet.");
   const input = await body(request);
   const ip = await clientIp();
 

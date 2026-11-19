@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { getT } from "@/lib/i18n/server";
 import { getViewer } from "@/lib/auth";
+import { SIGN_IN_OPEN } from "@/lib/features";
 import PageIntro from "@/components/site/PageIntro";
 import MemberSignInForm from "./MemberSignInForm";
 
@@ -14,6 +15,8 @@ export const metadata = { title: "Volunteer sign in" };
  */
 export default async function VolunteerLogin({ searchParams }) {
   if (await getViewer()) redirect("/workspace");
+  // Sign-in is closed for launch: send people to Join instead (see lib/features.js).
+  if (!SIGN_IN_OPEN) redirect("/volunteer");
   const t = await getT();
   // Demo sign-in hints only on a development machine running the demo data.
   const demo = process.env.NODE_ENV !== "production" && process.env.SEED_DEMO === "1"

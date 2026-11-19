@@ -4,6 +4,7 @@ import { getRegistrant } from "@/lib/auth";
 import { placeLabel, areaName } from "@/lib/geo";
 import { formatPhone } from "@/lib/validate";
 import { audit } from "@/lib/audit";
+import { bankAccountsOf } from "@/lib/registration";
 import { fail } from "@/lib/http";
 
 /**
@@ -28,6 +29,7 @@ export async function GET() {
     roles: (await all("SELECT role FROM volunteer_roles WHERE volunteer_id = :id", { id: v.id })).map((r) => r.role),
     languages: (await all("SELECT language FROM volunteer_languages WHERE volunteer_id = :id", { id: v.id })).map((r) => r.language),
     social_accounts: await all("SELECT network, handle, url FROM social_accounts WHERE owner_type = 'volunteer' AND owner_id = :id", { id: v.id }),
+    bank_accounts: (await bankAccountsOf(v.id, { full: true })).map((a) => ({ bank: a.bank, account_number: a.number, account_name: a.name })),
     registered_at: v.created_at,
   };
 

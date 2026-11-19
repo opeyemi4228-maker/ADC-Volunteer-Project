@@ -1,9 +1,8 @@
-import fs from "node:fs";
 
 import { one } from "@/lib/db";
 import { getViewer } from "@/lib/auth";
 import { scopeSql } from "@/lib/scope";
-import { objectPath } from "@/lib/storage";
+import { objectResponse } from "@/lib/objects";
 import { fail } from "@/lib/http";
 
 /**
@@ -24,8 +23,5 @@ export async function GET(request, { params }) {
   }
   const size = new URL(request.url).searchParams.get("size");
   const key = size === "medium" ? v?.photo_key : v?.photo_thumb_key;
-  const file = key && objectPath(key);
-  if (!file || !fs.existsSync(file)) return fail(404, "Not found.");
-  const buf = fs.readFileSync(file);
-  return new Response(buf, { headers: { "Content-Type": "image/jpeg", "Content-Length": String(buf.length), "Cache-Control": "private, max-age=86400" } });
+  return objectResponse(key, request, { "Content-Type": "image/jpeg", "Cache-Control": "private, no-store" });
 }

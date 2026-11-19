@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { getT } from "@/lib/i18n/server";
 import { Logo } from "@/components/ui";
+import { SIGN_IN_OPEN } from "@/lib/features";
 
 export default async function SiteFooter() {
   const t = await getT();
@@ -49,7 +50,7 @@ export default async function SiteFooter() {
             © {new Date().getFullYear()} {t("African Democratic Congress")}. {t("Your data is protected under the Nigeria Data Protection Act 2023.")}
           </p>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-            <Link href="/signin" className="inline-flex min-h-10 items-center hover:text-white">{t("Coordinator sign in")}</Link>
+            {SIGN_IN_OPEN && <Link href="/signin" className="inline-flex min-h-10 items-center hover:text-white">{t("Coordinator sign in")}</Link>}
             <p>
               {t("Built by")}{" "}
               <a href="https://www.bitlayerx.com" target="_blank" rel="noopener" className="inline-flex min-h-10 items-center font-semibold text-white/80 underline decoration-white/30 underline-offset-4 hover:text-white hover:decoration-white">

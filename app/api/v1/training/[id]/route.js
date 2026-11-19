@@ -1,9 +1,8 @@
-import fs from "node:fs";
 
 import { all, one, run, nowIso } from "@/lib/db";
 import { clientIp } from "@/lib/auth";
 import { audit } from "@/lib/audit";
-import { objectPath } from "@/lib/storage";
+import { queueObjectDeletion } from "@/lib/storage-cleanup";
 import { ok, fail, body, requirePower } from "@/lib/http";
 import { moduleErrors } from "@/lib/training";
 
@@ -33,7 +32,7 @@ export async function DELETE(_request, { params }) {
   if (!m) return fail(404, "Training not found.");
   const files = await all("SELECT storage_key FROM training_videos WHERE module_id = :id AND storage_key IS NOT NULL", { id });
   await run("DELETE FROM training_modules WHERE id = :id", { id });
-  for (const f of files) fs.rm(objectPath(f.storage_key), { force: true }, () => {});
+  for (const f of files) await queueObjectDeletion(f.storage_key);
   await audit(viewer, "training_deleted", "training", id, { title: m.title }, await clientIp());
   return ok({ deleted: true });
 }

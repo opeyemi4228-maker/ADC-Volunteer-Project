@@ -1,10 +1,9 @@
-import fs from "node:fs";
 
 import { one, run, tx, nowIso } from "@/lib/db";
 import { uuid } from "@/lib/crypto";
 import { clientIp } from "@/lib/auth";
 import { audit } from "@/lib/audit";
-import { objectPath } from "@/lib/storage";
+import { queueObjectDeletion } from "@/lib/storage-cleanup";
 import { cleanVideoUrl } from "@/lib/training";
 import { TRAINING_LANGUAGES } from "@/lib/options";
 import { ok, fail, body, requirePower } from "@/lib/http";
@@ -49,7 +48,7 @@ export async function POST(request, { params }) {
     // The upload now belongs to the training video; it can not be attached anywhere else.
     if (upload) await run("UPDATE uploads SET owner_hash = :o WHERE id = :u", { o: `training:${videoId}`, u: upload.id });
   });
-  if (old?.storage_key && old.storage_key !== upload?.storage_key) fs.rm(objectPath(old.storage_key), { force: true }, () => {});
+  if (old?.storage_key && old.storage_key !== upload?.storage_key) await queueObjectDeletion(old.storage_key);
   await audit(viewer, "training_video_added", "training", id, { language: d.language, kind: upload ? "video" : "link" }, await clientIp());
   return ok({ id: videoId });
 }

@@ -5,12 +5,14 @@ import {
 } from "lucide-react";
 
 import { getT } from "@/lib/i18n/server";
+import { getViewer } from "@/lib/auth";
 import { all, scalar } from "@/lib/db";
 import { publicMomentum } from "@/lib/queries";
 import { fmt } from "@/components/ui";
 import { VOLUNTEER_ROLES } from "@/lib/options";
 import DotMap from "@/components/site/DotMap";
 import AreaFinder from "./AreaFinder";
+import { SIGN_IN_OPEN } from "@/lib/features";
 
 // Live counts, map and momentum come from the database on every request.
 export const dynamic = "force-dynamic";
@@ -35,6 +37,7 @@ async function data() {
 export default async function HomePage() {
   const t = await getT();
   const d = await data();
+  const viewer = await getViewer().catch(() => null);
   const ussd = process.env.NEXT_PUBLIC_USSD_CODE ?? "*XXX*YY#";
   const statesActive = Object.keys(d.byState).length;
   // Live figures only once they say something; "0 volunteers in 0 states" helps nobody.
@@ -81,10 +84,28 @@ export default async function HomePage() {
                 ))}
               </ul>
               <p className="mt-5 text-center text-[14px] text-white/65 sm:mt-6 sm:border-t sm:border-white/10 sm:pt-5 sm:text-left">
-                {t("Already registered?")}{" "}
-                <Link href="/login" className="font-semibold text-white underline decoration-white/35 underline-offset-4 hover:decoration-white">
-                  {t("Sign in for your ID card and certificate")}
-                </Link>
+                {viewer ? (
+                  <>
+                    {t("Welcome back, {name}.", { name: viewer.name.split(" ")[0] })}{" "}
+                    <Link href="/workspace" className="font-semibold text-white underline decoration-white/35 underline-offset-4 hover:decoration-white">
+                      {t("Go to your dashboard for your ID card and certificate")}
+                    </Link>
+                  </>
+                ) : !SIGN_IN_OPEN ? (
+                  <>
+                    {t("Already registered?")}{" "}
+                    <Link href="/status" className="font-semibold text-white underline decoration-white/35 underline-offset-4 hover:decoration-white">
+                      {t("Check my registration")}
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    {t("Already registered?")}{" "}
+                    <Link href="/login" className="font-semibold text-white underline decoration-white/35 underline-offset-4 hover:decoration-white">
+                      {t("Sign in for your ID card and certificate")}
+                    </Link>
+                  </>
+                )}
               </p>
             </div>
 

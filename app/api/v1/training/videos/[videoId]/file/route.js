@@ -1,10 +1,9 @@
-import fs from "node:fs";
 
 import { getViewer } from "@/lib/auth";
 import { videoFor, recordDownload } from "@/lib/training";
 import { audit } from "@/lib/audit";
 import { clientIp } from "@/lib/auth";
-import { objectPath } from "@/lib/storage";
+import { objectResponse } from "@/lib/objects";
 import { fail } from "@/lib/http";
 
 /**
@@ -19,9 +18,6 @@ export async function GET(request, { params }) {
   if (!viewer) return fail(401, "Sign in to continue.");
   const v = await videoFor(viewer, (await params).videoId);
   if (!v || v.kind !== "video" || !v.storage_key) return fail(404, "Not found.");
-  const file = objectPath(v.storage_key);
-  if (!fs.existsSync(file)) return fail(404, "Not found.");
-  const { size } = fs.statSync(file);
   const type = v.mime ?? "video/mp4";
   const headers = { "Content-Type": type, "Accept-Ranges": "bytes", "Cache-Control": "private, max-age=3600" };
   const download = new URL(request.url).searchParams.get("download") === "1";
@@ -38,15 +34,5 @@ export async function GET(request, { params }) {
     await recordDownload(viewer, v);
     await audit(viewer, "training_downloaded", "training", v.module_id, { language: v.language }, await clientIp());
   }
-  if (range) {
-    const [s, e] = range.replace("bytes=", "").split("-");
-    const start = Number(s) || 0;
-    const end = Math.min(size - 1, e ? Number(e) : start + 2 * 1024 * 1024 - 1);
-    if (start >= size || end < start) return new Response(null, { status: 416, headers: { "Content-Range": `bytes */${size}` } });
-    return new Response(fs.createReadStream(file, { start, end }), {
-      status: 206,
-      headers: { ...headers, "Content-Range": `bytes ${start}-${end}/${size}`, "Content-Length": String(end - start + 1) },
-    });
-  }
-  return new Response(fs.createReadStream(file), { headers: { ...headers, "Content-Length": String(size) } });
+  return objectResponse(v.storage_key, request, headers);
 }

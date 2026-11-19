@@ -9,13 +9,16 @@ import { useT } from "@/lib/i18n/client";
 import { GENDERS, PVC_STATUS, VOLUNTEER_ROLES, LANGUAGES, AVAILABILITY, CONTACT_CHANNELS, MAX_ROLES } from "@/lib/options";
 import { normalizePhone, isValidName, ageOn, isValidIsoDate } from "@/lib/validate";
 import QuestionFlow from "@/components/forms/QuestionFlow";
+import BankAccounts from "@/components/forms/BankAccounts";
+import { bankAccountProblems } from "@/lib/banks";
 import { api, loadStates, loadLgas, loadUnits } from "@/components/forms/api";
+import { SIGN_IN_OPEN } from "@/lib/features";
 
 const UNKNOWN = "__unknown";
 const clear = (...keys) => (v, d) => ({ ...d, vote: { ...d.vote, ...Object.fromEntries(keys.map((k) => [k, ""])) } });
 
 /**
- * Volunteer registration in 6 short screens (about 2 minutes).
+ * Volunteer registration in 7 short screens (about 3 minutes).
  * The answers are exactly what POST /api/v1/volunteers expects.
  */
 function buildScreens() {
@@ -64,6 +67,21 @@ function buildScreens() {
           validate: (v, d) => (String(v ?? "").trim() === "" ? (d.help?.channel === "email" ? "Enter your email address, or choose another way to reach you." : null)
             : !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v).trim()) ? "Enter a valid email address." : null) },
       ] },
+    { id: "bank", title: "Your bank account",
+      help: "Where the campaign will send any payment due to you as a volunteer. Add your main account; you can add a second one as a backup.",
+      items: [
+        { path: "bank.accounts", kind: "custom",
+          render: ({ data, set, t }, error) => (
+            <BankAccounts
+              value={data.bank?.accounts}
+              onChange={(v) => set("bank.accounts", v)}
+              t={t}
+              showErrors={Boolean(error)}
+              ownerName={[data.about?.first_name, data.about?.surname].filter(Boolean).join(" ")}
+            />
+          ),
+          validate: (v) => (Object.keys(bankAccountProblems(v)).length ? "Check the bank details marked above." : null) },
+      ] },
     { id: "agree", title: "Confirm and join",
       help: "There's no password. To sign in later, enter the phone number you gave on this form and we'll text you a one-time code. Make sure that number is correct.",
       items: [
@@ -79,7 +97,7 @@ export default function VolunteerForm({ role = "" }) {
   const t = useT();
   const [done, setDone] = useState(null);
   const [initial] = useState(() => ({
-    about: {}, vote: {}, consent: {},
+    about: {}, vote: {}, consent: {}, bank: { accounts: [{}] },
     help: { roles: VOLUNTEER_ROLES.some((r) => r.value === role) ? [role] : [], languages: [] },
   }));
 
@@ -108,14 +126,14 @@ function Success({ done }) {
       <CheckCircle2 aria-hidden className="mx-auto size-14 text-brand-500" />
       <h2 className="mt-4 h-page">{t("Welcome, {name}", { name: done.firstName })}</h2>
       <p className="mt-2 text-ink-muted">{t("Your registration is pending verification. We've sent your volunteer ID by SMS.")}</p>
-      <p className="mt-1 text-ink-muted">{t("Sign in any time with the phone number you registered with. We'll text you a one-time code to sign in. Your certificate appears there once you're verified.")}</p>
+      {SIGN_IN_OPEN && <p className="mt-1 text-ink-muted">{t("Sign in any time with the phone number you registered with. We'll text you a one-time code to sign in. Your certificate appears there once you're verified.")}</p>}
       <div className="mx-auto mt-8 max-w-sm rounded-xl bg-surface-alt p-4 text-left">
         <p className="text-[13px] font-semibold text-ink-muted">{t("Volunteer ID")}</p>
         <p className="font-mono text-lg font-bold">{done.publicId}</p>
       </div>
       <div className="mt-8 flex flex-wrap justify-center gap-3">
-        <Link href="/login" className="btn btn-primary">{t("Go to my volunteer dashboard")}</Link>
-        <Link href="/status" className="btn btn-secondary">{t("Check my registration")}</Link>
+        {SIGN_IN_OPEN && <Link href="/login" className="btn btn-primary">{t("Go to my volunteer dashboard")}</Link>}
+        <Link href="/status" className={SIGN_IN_OPEN ? "btn btn-secondary" : "btn btn-primary"}>{t("Check my registration")}</Link>
         <Link href="/" className="btn btn-ghost">{t("Back to home")}</Link>
       </div>
     </Card>

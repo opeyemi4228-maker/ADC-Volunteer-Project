@@ -1,4 +1,5 @@
 "use client";
+import { useModalFocus } from "@/components/accessibility/useModalFocus";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -13,6 +14,7 @@ import { useT } from "@/lib/i18n/client";
 import { Logo, cx } from "@/components/ui";
 import LanguageSwitch from "@/components/site/LanguageSwitch";
 import { Avatar } from "@/components/workspace/Avatar";
+import { SIGN_IN_OPEN } from "@/lib/features";
 
 /** The admin menu, in groups. Settings sits at the foot of the sidebar with the other account links. */
 const NAV = [
@@ -75,7 +77,7 @@ function useDismiss(open, setOpen, ref) {
   useEffect(() => {
     if (!open) return undefined;
     const onDown = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    const onKey = (e) => { if (e.key === "Escape") { setOpen(false); if (ref.current?.contains(document.activeElement)) ref.current.querySelector(':scope > button[aria-expanded]')?.focus(); } };
     document.addEventListener("pointerdown", onDown);
     document.addEventListener("keydown", onKey);
     return () => { document.removeEventListener("pointerdown", onDown); document.removeEventListener("keydown", onKey); };
@@ -88,6 +90,8 @@ export default function WorkspaceShell({ viewer, areaLabel, counts, electionOn, 
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const drawer = useRef(null);
+  useModalFocus(open, drawer, () => setOpen(false));
   useEffect(() => setOpen(false), [pathname]);
   useEffect(() => {
     try { setCollapsed(localStorage.getItem("ws-sidebar") === "collapsed"); } catch { /* storage blocked */ }
@@ -108,7 +112,7 @@ export default function WorkspaceShell({ viewer, areaLabel, counts, electionOn, 
 
   async function signOut() {
     await fetch("/api/v1/auth/signout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ which: "user" }) });
-    router.push(volunteerMode ? "/login" : "/signin");
+    router.push(volunteerMode ? (SIGN_IN_OPEN ? "/login" : "/") : "/signin");
     router.refresh();
   }
 
@@ -155,7 +159,7 @@ export default function WorkspaceShell({ viewer, areaLabel, counts, electionOn, 
     <nav aria-label={t("Workspace")} className="flex flex-col">
       {groups.map((g, i) => (
         <div key={g.group ?? "main"} className={cx(i > 0 && "mt-3 border-t border-line pt-3")}>
-          {g.group && !rail && <p className="mb-1 px-3 text-[11px] font-bold uppercase tracking-[0.08em] text-ink-muted/80">{t(g.group)}</p>}
+          {g.group && !rail && <p className="mb-1 px-3 text-[11px] font-bold uppercase tracking-[0.08em] text-ink-muted">{t(g.group)}</p>}
           <div className="flex flex-col gap-0.5">{g.items.map((n) => navLink(n, rail))}</div>
         </div>
       ))}
@@ -214,8 +218,8 @@ export default function WorkspaceShell({ viewer, areaLabel, counts, electionOn, 
       </aside>
 
       {open && (
-        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" id="ws-drawer" aria-label={t("Menu")}>
-          <button type="button" aria-label={t("Close menu")} className="absolute inset-0 bg-ink/40 backdrop-blur-[2px]" onClick={() => setOpen(false)} />
+        <div ref={drawer} tabIndex={-1} className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" id="ws-drawer" aria-label={t("Menu")}>
+          <button type="button" tabIndex={-1} aria-hidden="true" className="absolute inset-0 bg-ink/40 backdrop-blur-[2px]" onClick={() => setOpen(false)} />
           <div className="absolute inset-y-0 left-0 flex w-[86%] max-w-[300px] flex-col overflow-y-auto bg-white shadow-2xl">
             <div className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-line pl-4 pr-2">
               {brand}
@@ -241,7 +245,7 @@ export default function WorkspaceShell({ viewer, areaLabel, counts, electionOn, 
       <div className="flex min-w-0 flex-col">
         {/* Top bar: stays put while the page scrolls, on every screen size. */}
         <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-2 border-b border-line bg-white/90 px-2 backdrop-blur-md supports-[backdrop-filter]:bg-white/80 sm:gap-3 sm:px-4 lg:px-8">
-          <button type="button" onClick={() => setOpen(true)} className="grid size-11 shrink-0 place-items-center rounded-lg hover:bg-surface-alt lg:hidden" aria-expanded={open} aria-controls="ws-drawer">
+          <button type="button" onClick={() => setOpen(true)} className="grid size-11 shrink-0 place-items-center rounded-lg hover:bg-surface-alt lg:hidden" aria-expanded={open} aria-controls={open ? "ws-drawer" : undefined}>
             <Menu aria-hidden className="size-6" />
             <span className="sr-only">{t("Menu")}</span>
           </button>
@@ -253,7 +257,7 @@ export default function WorkspaceShell({ viewer, areaLabel, counts, electionOn, 
             <AccountMenu viewer={viewer} areaLabel={areaLabel} volunteerMode={volunteerMode} onSignOut={signOut} t={t} />
           </div>
         </header>
-        <main id="ws-main" className="mx-auto w-full max-w-[1440px] flex-1 px-4 pb-16 pt-6 sm:px-6 lg:px-8 lg:pt-7">
+        <main id="ws-main" tabIndex={-1} className="mx-auto w-full max-w-[1440px] flex-1 px-4 pb-16 pt-6 sm:px-6 lg:px-8 lg:pt-7">
           {children}
         </main>
       </div>
@@ -270,6 +274,7 @@ function CommandSearch({ items, canSearchVolunteers, t }) {
   const [mobile, setMobile] = useState(false);
   const box = useRef(null);
   const input = useRef(null);
+  const searchButton = useRef(null);
   useDismiss(open, setOpen, box);
   const [mac, setMac] = useState(true);
   useEffect(() => setMac(/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)), []);
@@ -312,12 +317,13 @@ function CommandSearch({ items, canSearchVolunteers, t }) {
     if (e.key === "ArrowDown") { e.preventDefault(); setOpen(true); setActive((a) => Math.min(results.length - 1, a + 1)); }
     if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => Math.max(0, a - 1)); }
     if (e.key === "Enter") { e.preventDefault(); go(results[active]); }
-    if (e.key === "Escape") { setOpen(false); setMobile(false); input.current?.blur(); }
+    if (e.key === "Escape") { e.preventDefault(); setOpen(false); setMobile(false); if (mobile) searchButton.current?.focus(); }
+    if (e.key === "Tab") setOpen(false);
   }
 
   return (
     <>
-      <button type="button" onClick={() => { setMobile(true); setOpen(true); requestAnimationFrame(() => input.current?.focus()); }} className="ml-auto grid size-11 place-items-center rounded-lg text-ink-muted hover:bg-surface-alt sm:hidden">
+      <button ref={searchButton} type="button" onClick={() => { setMobile(true); setOpen(true); requestAnimationFrame(() => input.current?.focus()); }} className="ml-auto grid size-11 place-items-center rounded-lg text-ink-muted hover:bg-surface-alt sm:hidden">
         <Search aria-hidden className="size-5" />
         <span className="sr-only">{t("Search")}</span>
       </button>
@@ -341,26 +347,29 @@ function CommandSearch({ items, canSearchVolunteers, t }) {
             placeholder={canSearchVolunteers ? t("Search volunteers or pages…") : t("Search…")}
             className="min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-ink-muted [&::-webkit-search-cancel-button]:hidden"
             role="combobox"
+            aria-label={t("Search the workspace")}
             aria-expanded={open}
-            aria-controls="ws-search-results"
+            aria-controls={open && results.length > 0 ? "ws-search-results" : undefined}
             aria-activedescendant={open && results[active] ? `ws-r-${active}` : undefined}
             autoComplete="off"
           />
           <kbd className="hidden shrink-0 rounded-md border border-line bg-white px-1.5 py-0.5 font-sans text-[11px] font-semibold text-ink-muted sm:inline">{mac ? "⌘K" : "Ctrl K"}</kbd>
           {mobile && (
-            <button type="button" onClick={() => { setMobile(false); setOpen(false); }} className="grid size-8 place-items-center rounded-md text-ink-muted sm:hidden">
+            <button type="button" onClick={() => { setMobile(false); setOpen(false); searchButton.current?.focus(); }} className="grid size-8 place-items-center rounded-md text-ink-muted sm:hidden">
               <X aria-hidden className="size-4" /><span className="sr-only">{t("Close search")}</span>
             </button>
           )}
         </label>
         {open && results.length > 0 && (
-          <ul id="ws-search-results" role="listbox" className="absolute inset-x-0 top-[calc(100%+6px)] z-50 max-h-[70vh] overflow-y-auto rounded-xl border border-line bg-white p-1.5 shadow-[0_16px_40px_-12px_rgb(16_24_20/0.25)]">
+          <ul id="ws-search-results" role="listbox" aria-label={t("Search results")} className="absolute inset-x-0 top-[calc(100%+6px)] z-50 max-h-[70vh] overflow-y-auto rounded-xl border border-line bg-white p-1.5 shadow-[0_16px_40px_-12px_rgb(16_24_20/0.25)]">
             {results.map((r, i) => {
               const Icon = r.icon;
               return (
-                <li key={r.key} id={`ws-r-${i}`} role="option" aria-selected={i === active}>
+                <li key={r.key} role="presentation">
                   <button
                     type="button"
+                    id={`ws-r-${i}`} role="option" aria-selected={i === active}
+                    tabIndex={-1}
                     onPointerEnter={() => setActive(i)}
                     onClick={() => go(r)}
                     className={cx("flex min-h-11 w-full items-center gap-3 rounded-lg px-2.5 text-left text-[14px]", i === active ? "bg-brand-50 text-brand-900" : "text-ink")}
@@ -395,12 +404,12 @@ function Notifications({ counts, volunteerMode, t }) {
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        aria-haspopup="true"
+       
         className={cx("relative grid size-10 place-items-center rounded-full border border-line bg-white text-ink-muted transition-colors hover:text-ink", open && "border-brand-600 text-ink")}
       >
         <Bell aria-hidden className="size-[18px]" strokeWidth={1.9} />
         <span className="sr-only">{total ? t("Notifications, {n} waiting", { n: total }) : t("Notifications")}</span>
-        {total > 0 && <span aria-hidden className="absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-accent-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white num">{total > 99 ? "99+" : total}</span>}
+        {total > 0 && <span aria-hidden className="absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-accent-500 px-1 text-[10px] font-bold leading-none text-ink ring-2 ring-white num">{total > 99 ? "99+" : total}</span>}
       </button>
       {open && (
         <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[min(340px,calc(100vw-1rem))] rounded-xl border border-line bg-white shadow-[0_16px_40px_-12px_rgb(16_24_20/0.25)]">
@@ -440,7 +449,7 @@ function AccountMenu({ viewer, areaLabel, volunteerMode, onSignOut, t }) {
 
   return (
     <div ref={ref} className="relative">
-      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="true" className="flex items-center gap-2.5 rounded-full p-0.5 pr-1 transition-colors hover:bg-surface-alt sm:pr-2.5">
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex items-center gap-2.5 rounded-full p-0.5 pr-1 transition-colors hover:bg-surface-alt sm:pr-2.5">
         <Avatar src={viewer.photo} name={viewer.name} className="size-9 text-[13px] ring-2 ring-white" />
         <span className="hidden min-w-0 text-left leading-tight md:block">
           <span className="block max-w-[160px] truncate text-[13px] font-semibold">{viewer.name}</span>
@@ -493,7 +502,7 @@ function SideCard({ volunteerMode, electionOn, canElection, t }) {
         {glow}
         <span className="relative grid size-9 place-items-center rounded-lg bg-white/15"><Share2 aria-hidden className="size-[18px]" /></span>
         <p className="relative mt-3 text-[15px] font-bold">{t("Bring a friend")}</p>
-        <p className="relative mt-1 text-[12px] leading-[18px] text-white/75">{t("Every polling unit needs volunteers. Share the sign-up link with someone you trust.")}</p>
+        <p className="relative mt-1 text-[12px] leading-[18px] text-white/90">{t("Every polling unit needs volunteers. Share the sign-up link with someone you trust.")}</p>
         <button type="button" onClick={invite} className="relative mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-white text-[13px] font-bold text-brand-800 transition-colors hover:bg-brand-50">
           {copied ? <><Check aria-hidden className="size-4" /> {t("Link copied")}</> : t("Invite a volunteer")}
         </button>
@@ -511,7 +520,7 @@ function SideCard({ volunteerMode, electionOn, canElection, t }) {
         </span>
       </span>
       <p className="relative mt-3 text-[15px] font-bold">{t("Election day")}</p>
-      <p className="relative mt-1 text-[12px] leading-[18px] text-white/75">
+      <p className="relative mt-1 text-[12px] leading-[18px] text-white/90">
         {electionOn ? t("Results and incidents are coming in from polling units.") : t("Check the agent roster so every polling unit is covered.")}
       </p>
       <Link href="/workspace/election" className="relative mt-3 flex h-10 w-full items-center justify-center rounded-xl bg-white text-[13px] font-bold text-brand-800 transition-colors hover:bg-brand-50">

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Phone, Mail, MessageCircle, AlertTriangle } from "lucide-react";
+import { Phone, Mail, MessageCircle, AlertTriangle, Landmark, Lock } from "lucide-react";
 
 import { clientIp } from "@/lib/auth";
 import { requireViewer } from "@/lib/guard";
@@ -15,6 +15,8 @@ import { DecisionPanel, ApiButton } from "@/components/workspace/actions";
 import AccountControl from "@/components/workspace/AccountControl";
 import { Avatar, photoUrl } from "@/components/workspace/Avatar";
 import { volunteerActivity } from "@/lib/volunteer-portal";
+import { bankAccountsOf } from "@/lib/registration";
+import { isSuperAdmin } from "@/lib/scope";
 
 export const metadata = { title: "Volunteer" };
 
@@ -30,6 +32,10 @@ export default async function VolunteerProfile({ params }) {
   const act = await volunteerActivity(v.id);
   const REVIEW = { submitted: ["pending", "Waiting for review"], approved: ["approved", "Accepted"], rejected: ["rejected", "Not accepted"] };
   const flags = v.flags.filter((f) => !f.resolved_at);
+  // Full account numbers only for the Super Admin, who pays volunteers; everyone else sees the last four digits.
+  const fullBank = isSuperAdmin(viewer);
+  const bank = viewer.powers.includes("summary_only") ? [] : await bankAccountsOf(v.id, { full: fullBank });
+  const bankChanged = v.history.find((h) => h.action === "bank_details_changed");
 
   return (
     <>
@@ -90,6 +96,30 @@ export default async function VolunteerProfile({ params }) {
                 <a href={`tel:${v.phoneE164}`} className="btn btn-secondary btn-sm"><Phone aria-hidden className="size-4" /> Call</a>
                 <a href={`https://wa.me/${v.phoneE164.slice(1)}`} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm"><MessageCircle aria-hidden className="size-4" /> WhatsApp</a>
               </div>
+            )}
+          </Card>
+          <Card className="p-5">
+            <h2 className="h-section mb-1 flex items-center gap-2"><Landmark aria-hidden className="size-5 text-brand-700" /> Bank accounts</h2>
+            <p className="mb-4 flex items-center gap-1.5 text-[13px] text-ink-muted">
+              {fullBank ? "Full account numbers are shown to the Super Admin only." : <><Lock aria-hidden className="size-3.5" /> Only the last four digits are shown to coordinators.</>}
+              {bankChanged && ` Last changed by the volunteer ${dateLabel(bankChanged.timestamp)}.`}
+            </p>
+            {viewer.powers.includes("summary_only") ? (
+              <p className="text-[14px] text-ink-muted">Your position shows names and figures only.</p>
+            ) : bank.length === 0 ? (
+              <p className="rounded-xl bg-warning-bg p-3 text-[14px]">No bank account given yet. Volunteers who registered before bank details were asked for can add one from their dashboard.</p>
+            ) : (
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {bank.map((a) => (
+                  <li key={a.slot} className="min-w-0 rounded-xl border border-line p-3.5">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">{a.slot === 1 ? "Main account" : "Second account"}</p>
+                    <p className="mt-1 truncate text-[14px] font-semibold" title={a.bank}>{a.bank}</p>
+                    {!a.listed && <p className="text-[12px] font-medium text-warning">Not on the bank list: confirm the bank when you call.</p>}
+                    <p className="mt-0.5 font-mono text-[16px] font-bold tracking-wide">{a.display}</p>
+                    <p className="mt-0.5 truncate text-[13px] text-ink-muted" title={a.name}>{a.name}</p>
+                  </li>
+                ))}
+              </ul>
             )}
           </Card>
           <Card className="p-5">

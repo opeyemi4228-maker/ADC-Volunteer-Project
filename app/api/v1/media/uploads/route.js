@@ -1,5 +1,6 @@
-import { getViewer } from "@/lib/auth";
+import { getViewer, clientIp } from "@/lib/auth";
 import { uploadOwner } from "@/lib/owner";
+import { takeRateLimit } from "@/lib/rate-limit";
 import { createUpload } from "@/lib/storage";
 import { ok, fail, body } from "@/lib/http";
 
@@ -9,6 +10,7 @@ import { ok, fail, body } from "@/lib/http";
  * `purpose: "training"` (Super Admin only) allows the larger training-video limit.
  */
 export async function POST(request) {
+  if (!await takeRateLimit("upload-ip", await clientIp(), 100, 3600)) return fail(429, "Too many uploads. Try again later.");
   const owner = await uploadOwner({ create: true });
   if (!owner) return fail(401, "Verify your phone number first.");
   const { name, type, size, purpose } = await body(request);

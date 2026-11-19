@@ -5,6 +5,7 @@ import { Check, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 
 import { Field, cx } from "@/components/ui";
 import { useT } from "@/lib/i18n/client";
+import { radioNavigation } from "./radioNavigation";
 import { getIn, setIn } from "./api";
 
 /**
@@ -86,9 +87,9 @@ export function ChoiceChips({ form, path, label, hint, options, multiple = false
   const error = form.errors[path];
   return (
     <fieldset className={cx("space-y-2", className)}>
-      {label && <legend className="t-label">{label}</legend>}
+      {label && <legend id={`${idOf(path)}-label`} className="t-label">{label}</legend>}
       {hint && <p className="t-help">{hint}</p>}
-      <div className="flex flex-wrap gap-2 pt-1" role={multiple ? "group" : "radiogroup"}>
+      <div className="flex flex-wrap gap-2 pt-1" role={multiple ? "group" : "radiogroup"} aria-labelledby={label ? `${idOf(path)}-label` : undefined} onKeyDown={multiple ? undefined : radioNavigation}>
         {options.map((o) => (
           <button
             key={o.value}
@@ -96,6 +97,7 @@ export function ChoiceChips({ form, path, label, hint, options, multiple = false
             className="chip"
             role={multiple ? "checkbox" : "radio"}
             aria-checked={selected(o.value)}
+            tabIndex={multiple || selected(o.value) || (!options.some(x => selected(x.value)) && o === options[0]) ? 0 : -1}
             title={o.hint ? t(o.hint) : undefined}
             onClick={() => toggle(o.value)}
           >
@@ -125,11 +127,12 @@ export function CheckField({ form, path, children }) {
           checked={Boolean(form.get(path))}
           onChange={(e) => form.set(path, e.target.checked)}
           aria-invalid={error ? "true" : undefined}
+          aria-describedby={error ? `${idOf(path)}-error` : undefined}
         />
         <span className="text-[15px]">{children}</span>
       </label>
       {error && (
-        <p className="mt-1.5 text-[14px] font-medium text-danger" role="alert">
+        <p id={`${idOf(path)}-error`} className="mt-1.5 text-[14px] font-medium text-danger" role="alert">
           {t(error)}
         </p>
       )}

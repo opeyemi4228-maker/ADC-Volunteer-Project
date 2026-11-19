@@ -15,7 +15,7 @@ export function Avatar({ src, name, className = "size-9 text-[13px]", rounded = 
     return <img src={src} alt="" className={cx("shrink-0 bg-surface-alt object-cover", rounded, className)} loading="lazy" />;
   }
   return (
-    <span aria-hidden className={cx("grid shrink-0 place-items-center bg-gradient-to-br from-brand-500 to-brand-800 font-bold text-white", rounded, className)}>
+    <span aria-hidden className={cx("grid shrink-0 place-items-center bg-gradient-to-br from-brand-700 to-brand-800 font-bold text-white", rounded, className)}>
       {initialsOf(name)}
     </span>
   );

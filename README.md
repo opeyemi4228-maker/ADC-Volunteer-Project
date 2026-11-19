@@ -25,9 +25,13 @@ To try the system with **synthetic demo data** (40 groups, about 1,400 volunteer
 activities, media and tasks; no real people) on your own machine, set `SEED_DEMO=1`
 and run `npm run seed -- --reset`. Never load demo data into the live database.
 
-Until an SMS provider is connected (`SMS_PROVIDER=console`), nothing is texted:
-one-time codes for registration and sign-in are shown on screen instead. Setting
-`SMS_PROVIDER` (and implementing `deliver()` in `lib/notify.js`) switches this off.
+Until the SMS API is implemented, `SMS_PROVIDER=console` simulates delivery and
+shows one-time codes on screen, including production builds. This temporary
+fallback does not verify ownership of the phone. Implement `deliver()` in
+`lib/notify.js` and configure a real provider to remove the preview; changing
+the provider name alone does not implement delivery. New authentication outbox
+records are redacted, and simulated delivery logs omit recipients and content.
+Production email requires `SMTP_URL`.
 
 ### Demo sign-ins
 
@@ -152,7 +156,7 @@ PostgreSQL everywhere, one schema (`lib/migrations.js`), one data layer (`lib/db
 
 **Staying up.**
 
-- **Retries.** Connection failures are retried with backoff: Neon pauses idle databases, and waking one takes a moment. A transaction that lost a race (deadlock or serialisation failure) is retried whole. Counters are a single atomic statement, so two requests never get the same number.
+- **Retries.** Connection establishment failures are retried with backoff. Dispatched queries and uncertain commits are never replayed after connection loss. A transaction rolled back for a deadlock or serialisation failure is retried whole. Counters are a single atomic statement, so two requests never get the same number.
 - **Readable failures.** A failing query is logged with its SQL text, never its values, so problems can be traced without personal data in the logs.
 - **Health check.** `GET /api/v1/health` returns 200 when the database answers and its schema matches the release, and 503 otherwise. Point an uptime monitor at it.
 - **Backups.** Neon keeps point-in-time history, so you can restore the database to any moment in the retention window from the Neon console. Before a risky change, create a branch: it is an instant copy.
@@ -178,7 +182,7 @@ The site is a standard Next.js app on Node 22.13 or newer. It runs on Vercel or 
 3. Deploy. `vercel.json` places the functions in London (`lhr1`), next to the database, so each query is a short hop.
 
 - **Required:** `APP_SECRET` (the server refuses to start without it), a database URL and `SITE_URL`. See `.env.example` for everything else.
-- **Media files:** uploads are still written to the server's disk (`STORAGE_DIR`). On Vercel that disk is temporary, so photos uploaded there disappear when an instance is recycled. Before relying on media in production, move uploads to object storage (Vercel Blob, S3 or Cloudflare R2), or host on a server with a persistent disk.
+- **Media files:** production on Vercel uses private Cloudflare R2 (`STORAGE_BACKEND=r2`), including unfinished chunks. Local development can use `STORAGE_DIR`. Configure credentials, lifecycle cleanup and existing-file migration before switching. See [deployment instructions](docs/DEPLOYMENT.md).
 - **HTTPS:** put the site behind HTTPS. The app sends HSTS and secure cookies in production.
 - **Search engines:** `robots.txt` keeps the dashboards, API and personal pages out of search results; `sitemap.xml` lists the public pages.
 
@@ -192,3 +196,10 @@ The site is a standard Next.js app on Node 22.13 or newer. It runs on Vercel or 
 6. **Retention.** Agree the retention period with legal counsel and schedule the anonymisation job.
 7. **Review.** The party's legal team should review compliance with the NDPA 2023, the Electoral Act 2022 and INEC's campaign rules. Register with the NDPC, commission a penetration test, and hold an election-day rehearsal.
 8. **Pilot.** Run a pilot in two or three LGAs (urban, semi-urban and rural) before national rollout (spec §21).
+
+## Production configuration
+
+See [Vercel + Neon + Cloudflare R2 deployment](docs/DEPLOYMENT.md) for required
+variables, migration order, durable upload storage, cleanup and live smoke checks.
+Run `npm run check:production` after loading the production environment. The
+requested temporary on-screen OTP remains enabled with `SMS_PROVIDER=console`.

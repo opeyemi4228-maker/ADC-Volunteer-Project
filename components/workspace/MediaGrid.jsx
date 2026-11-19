@@ -28,7 +28,7 @@ function MediaCard({ m, canModerate, canPublicity, showGroup }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={`/api/v1/media/${m.id}/file?size=medium`} alt={m.caption ?? m.event_name ?? "Event photo"} className="size-full object-cover" loading="lazy" />
         )}
-        {m.kind === "video" && <video src={`/api/v1/media/${m.id}/file`} controls preload="metadata" className="size-full bg-black object-contain" />}
+        {m.kind === "video" && <video aria-label={m.caption || m.event_name || "Uploaded video"} src={`/api/v1/media/${m.id}/file`} controls preload="metadata" className="size-full bg-black object-contain" />}
         {m.kind === "link" && (
           <a href={m.external_url} target="_blank" rel="noreferrer" className="grid size-full place-items-center bg-brand-900 text-white">
             <span className="flex flex-col items-center gap-2 px-4 text-center">

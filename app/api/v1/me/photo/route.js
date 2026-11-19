@@ -1,15 +1,14 @@
-import fs from "node:fs";
 
 import { one, run, nowIso } from "@/lib/db";
 import { clientIp } from "@/lib/auth";
 import { audit } from "@/lib/audit";
-import { objectPath } from "@/lib/storage";
+import { queueObjectDeletion } from "@/lib/storage-cleanup";
 import { ok, fail, body, requirePower } from "@/lib/http";
 
 const ownVolunteer = (viewer) => viewer.roles.find((r) => r.role === "volunteer")?.area_code ?? null;
 
 async function removeFiles(row) {
-  for (const k of [row?.photo_key, row?.photo_thumb_key]) if (k) fs.rm(objectPath(k), { force: true }, () => {});
+  for (const k of [row?.photo_key, row?.photo_thumb_key]) if (k) await queueObjectDeletion(k);
 }
 
 /**
@@ -32,7 +31,7 @@ export async function POST(request) {
   });
   // The upload is used up: it can not be attached again elsewhere. Its full-size copy is not needed.
   await run("UPDATE uploads SET owner_hash = :o WHERE id = :u", { o: `photo:${volunteerId}`, u: upload.id });
-  if (upload.storage_key) fs.rm(objectPath(upload.storage_key), { force: true }, () => {});
+  if (upload.storage_key) await queueObjectDeletion(upload.storage_key);
   if (old?.photo_key !== upload.medium_key) await removeFiles(old);
   await audit(viewer, "photo_changed", "volunteer", volunteerId, null, await clientIp());
   return ok({ photo: `/api/v1/volunteers/${volunteerId}/photo?size=thumb` });

@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, Loader2, X } from "lucide-re
 
 import { Card, cx } from "@/components/ui";
 import { useT } from "@/lib/i18n/client";
+import { radioNavigation } from "./radioNavigation";
 import { api, getIn, setIn } from "./api";
 
 /**
@@ -32,6 +33,7 @@ export default function QuestionFlow({ flow, screens, initial, onSubmit, submitL
   const [busy, setBusy] = useState(false);
   const [draft, setDraft] = useState(null);
   const top = useRef(null);
+  const heading = useRef(null);
 
   const visible = screens.filter((s) => !s.when || s.when(data));
   const index = Math.max(0, id ? visible.findIndex((s) => s.id === id) : 0);
@@ -48,8 +50,8 @@ export default function QuestionFlow({ flow, screens, initial, onSubmit, submitL
 
   useEffect(() => {
     if (!id) return;
-    // The password ("account") is never written to the device.
-    const { account, ...kept } = data;
+    // The password ("account") and bank details are never written to the device.
+    const { account, bank, ...kept } = data;
     try { localStorage.setItem(key, JSON.stringify({ data: kept, id, at: Date.now() })); } catch {}
   }, [key, data, id]);
 
@@ -66,8 +68,20 @@ export default function QuestionFlow({ flow, screens, initial, onSubmit, submitL
     setErrors({});
     setFormError(null);
     setId(targetId);
-    requestAnimationFrame(() => top.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    requestAnimationFrame(() => {
+      heading.current?.focus({ preventScroll: true });
+      top.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    });
   }
+
+  useEffect(() => {
+    if (!Object.values(errors).some(Boolean)) return;
+    const invalid = top.current?.querySelector('[aria-invalid="true"]');
+    const fields = 'input,select,textarea,button';
+    const target = invalid?.matches(fields) ? invalid
+      : invalid?.querySelector(`:is(${fields})[aria-invalid="true"]`) ?? invalid?.querySelector(fields);
+    target?.focus();
+  }, [errors]);
 
   const isEmpty = (v) => v == null || v === "" || (Array.isArray(v) && v.length === 0);
   const owns = (i, k) => i.path && (k === i.path || k.startsWith(`${i.path}.`) || (i.errorPaths ?? []).some((p) => k === p || k.startsWith(`${p}.`)));
@@ -133,7 +147,7 @@ export default function QuestionFlow({ flow, screens, initial, onSubmit, submitL
         <ol className="flex flex-1 gap-1.5" aria-label={t("Progress")}>
           {visible.map((s, i) => (
             <li key={s.id} className={cx("h-1.5 flex-1 rounded-full transition-colors", i <= index ? "bg-brand-600" : "bg-ink/10")} aria-current={i === index ? "step" : undefined}>
-              <span className="sr-only">{typeof s.title === "function" ? "" : t(s.title)}</span>
+              <span className="sr-only">{typeof s.title === "function" ? s.title(data, t) : t(s.title)}</span>
             </li>
           ))}
         </ol>
@@ -141,8 +155,8 @@ export default function QuestionFlow({ flow, screens, initial, onSubmit, submitL
       </div>
 
       <Card className="rounded-3xl p-6 sm:p-9">
-        <form key={screen.id} className="animate-fade-up" noValidate onSubmit={(e) => { e.preventDefault(); next(); }}>
-          <h2 className="text-[1.5rem] font-bold leading-tight tracking-[-0.02em] text-balance sm:text-[1.875rem]">
+        <form key={screen.id} aria-busy={busy} className="animate-fade-up" noValidate onSubmit={(e) => { e.preventDefault(); next(); }}>
+          <h2 ref={heading} tabIndex={-1} className="text-[1.5rem] font-bold leading-tight tracking-[-0.02em] text-balance sm:text-[1.875rem]">
             {typeof screen.title === "function" ? screen.title(data, t) : t(screen.title)}
           </h2>
           {screen.help && <p className="mt-2 text-[16px] leading-relaxed text-ink-muted">{t(screen.help)}</p>}
@@ -168,7 +182,7 @@ export default function QuestionFlow({ flow, screens, initial, onSubmit, submitL
 
           <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6">
             {index > 0 ? (
-              <button type="button" className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 text-[15px] font-semibold text-ink-muted hover:text-ink" onClick={() => go(visible[index - 1].id)}>
+              <button type="button" className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 text-[15px] font-semibold text-ink-muted hover:text-ink" disabled={busy} onClick={() => go(visible[index - 1].id)}>
                 <ArrowLeft aria-hidden className="size-4" /> {t("Back")}
               </button>
             ) : <span />}
@@ -192,6 +206,11 @@ function Item({ item, ctx, error, first }) {
   const value = item.path ? getIn(data, item.path) : undefined;
   const wide = item.wide ?? !["text", "tel", "email", "password", "select"].includes(item.kind);
   const [shown, setShown] = useState(false);
+  const describedBy = [item.hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(" ") || undefined;
+  const aria = { "aria-describedby": describedBy, "aria-invalid": error ? "true" : undefined, "aria-required": !item.optional || undefined };
+  const group = ["choice", "multi", "cards", "date", "month"].includes(item.kind);
+  const Wrapper = group ? "fieldset" : "div";
+  const Label = group ? "legend" : "label";
   const control = (() => {
     switch (item.kind) {
       case "password":
@@ -206,7 +225,7 @@ function Item({ item, ctx, error, first }) {
               value={value ?? ""}
               onChange={(e) => set(item.path, e.target.value, item)}
               aria-invalid={error ? "true" : undefined}
-              autoFocus={first}
+              {...aria}
             />
             <button type="button" className="inline-flex min-h-10 items-center gap-1.5 text-[14px] font-semibold text-brand-700" onClick={() => setShown((v) => !v)}>
               {shown ? <EyeOff aria-hidden className="size-4" /> : <Eye aria-hidden className="size-4" />}
@@ -216,23 +235,23 @@ function Item({ item, ctx, error, first }) {
         );
       case "choice":
       case "multi":
-        return <Chips item={item} value={value} onChange={(v) => set(item.path, v, item)} t={t} data={data} />;
+        return <Chips id={id} describedBy={describedBy} item={item} value={value} onChange={(v) => set(item.path, v, item)} t={t} data={data} />;
       case "cards":
-        return <Cards item={item} value={value} onChange={(v) => set(item.path, v, item)} t={t} />;
+        return <Cards id={id} item={item} value={value} onChange={(v) => set(item.path, v, item)} t={t} />;
       case "select":
-        return <SelectAnswer id={id} item={item} value={value} onChange={(v) => set(item.path, v, item)} t={t} data={data} error={error} />;
+        return <SelectAnswer aria={aria} id={id} item={item} value={value} onChange={(v) => set(item.path, v, item)} t={t} data={data} error={error} />;
       case "date":
       case "month":
-        return <DateAnswer item={item} value={value} onChange={(v) => set(item.path, v, item)} t={t} month={item.kind === "month"} />;
+        return <DateAnswer aria={aria} item={item} value={value} onChange={(v) => set(item.path, v, item)} t={t} month={item.kind === "month"} />;
       case "check":
         return (
           <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-line bg-white p-4 text-[16px] leading-snug hover:bg-surface-alt">
-            <input type="checkbox" className="mt-0.5 size-5 shrink-0 accent-brand-700" checked={Boolean(value)} onChange={(e) => set(item.path, e.target.checked, item)} />
+            <input {...aria} type="checkbox" className="mt-0.5 size-5 shrink-0 accent-brand-700" checked={Boolean(value)} onChange={(e) => set(item.path, e.target.checked, item)} />
             <span>{typeof item.label === "function" ? item.label(t) : t(item.label)}</span>
           </label>
         );
       case "custom":
-        return item.render(ctx);
+        return item.render(ctx, error);
       default:
         return (
           <input
@@ -246,35 +265,35 @@ function Item({ item, ctx, error, first }) {
             value={value ?? ""}
             onChange={(e) => set(item.path, e.target.value, item)}
             aria-invalid={error ? "true" : undefined}
-            autoFocus={first}
+            {...aria}
           />
         );
     }
   })();
   if (item.kind === "check" || item.kind === "custom") {
     return (
-      <div className="sm:col-span-2">
+      <div className="sm:col-span-2" role={item.kind === "custom" ? "group" : undefined} aria-invalid={error ? "true" : undefined} aria-describedby={error ? `${id}-error` : undefined}>
         {control}
-        {error && <ErrorText>{error}</ErrorText>}
+        {error && <ErrorText id={`${id}-error`}>{error}</ErrorText>}
       </div>
     );
   }
   return (
-    <div className={cx("min-w-0 space-y-2", wide && "sm:col-span-2")}>
-      <label htmlFor={["choice", "multi", "cards", "date", "month"].includes(item.kind) ? undefined : id} className="block text-[15px] font-semibold">
+    <Wrapper aria-describedby={group ? describedBy : undefined} aria-invalid={group && error ? "true" : undefined} className={cx("min-w-0 space-y-2", wide && "sm:col-span-2")}>
+      <Label id={`${id}-label`} htmlFor={group ? undefined : id} className="block text-[15px] font-semibold">
         {typeof item.label === "function" ? item.label(data, t) : t(item.label)}
         {item.optional && <span className="ml-1.5 text-[13px] font-normal text-ink-muted">({t("optional")})</span>}
-      </label>
-      {item.hint && <p className="-mt-1 text-[14px] text-ink-muted">{t(item.hint)}</p>}
+      </Label>
+      {item.hint && <p id={`${id}-hint`} className="-mt-1 text-[14px] text-ink-muted">{t(item.hint)}</p>}
       {control}
-      {error && <ErrorText>{error}</ErrorText>}
-    </div>
+      {error && <ErrorText id={`${id}-error`}>{error}</ErrorText>}
+    </Wrapper>
   );
 }
 
-function ErrorText({ children }) {
+function ErrorText({ children, id }) {
   return (
-    <p role="alert" className="flex items-start gap-1.5 text-[14px] font-medium text-danger">
+    <p id={id} role="alert" className="flex items-start gap-1.5 text-[14px] font-medium text-danger">
       <X aria-hidden className="mt-0.5 size-4 shrink-0" />
       {children}
     </p>
@@ -282,12 +301,12 @@ function ErrorText({ children }) {
 }
 
 /** Pill chips: one tap to choose (or several, for "multi"). */
-function Chips({ item, value, onChange, t, data }) {
+function Chips({ id, describedBy, item, value, onChange, t, data }) {
   const options = typeof item.options === "function" ? item.options(data) : item.options;
   const multi = item.kind === "multi";
   const picked = new Set(multi ? value ?? [] : [value]);
   return (
-    <div role={multi ? "group" : "radiogroup"} className="flex flex-wrap gap-2">
+    <div role={multi ? "group" : "radiogroup"} aria-labelledby={`${id}-label`} aria-describedby={describedBy} onKeyDown={multi ? undefined : radioNavigation} className="flex flex-wrap gap-2">
       {options.map((o) => {
         const on = picked.has(o.value);
         return (
@@ -296,6 +315,7 @@ function Chips({ item, value, onChange, t, data }) {
             type="button"
             role={multi ? undefined : "radio"}
             aria-checked={multi ? undefined : on}
+            tabIndex={multi || on || (!options.some(x => picked.has(x.value)) && o === options[0]) ? 0 : -1}
             aria-pressed={multi ? on : undefined}
             onClick={() => onChange(multi ? (on ? [...picked].filter((x) => x !== o.value) : [...picked, o.value]) : o.value)}
             className={cx(
@@ -317,7 +337,7 @@ function Chips({ item, value, onChange, t, data }) {
  * With `max`, once that many are ticked the rest are greyed out until one is
  * unticked, and a counter says how many are chosen.
  */
-function Cards({ item, value, onChange, t }) {
+function Cards({ id, item, value, onChange, t }) {
   const picked = new Set(value ?? []);
   const full = item.max && picked.size >= item.max;
   return (
@@ -327,7 +347,7 @@ function Cards({ item, value, onChange, t }) {
           {full ? t("{n} of {max} chosen. Untick one to choose another.", { n: picked.size, max: item.max }) : t("{n} of {max} chosen (maximum {max})", { n: picked.size, max: item.max })}
         </p>
       )}
-    <div role="group" className="grid gap-2.5 sm:grid-cols-2">
+    <div role="group" aria-labelledby={`${id}-label`} className="grid gap-2.5 sm:grid-cols-2">
       {item.options.map((o) => {
         const on = picked.has(o.value);
         const locked = full && !on;
@@ -359,7 +379,7 @@ function Cards({ item, value, onChange, t }) {
 }
 
 /** Dropdown; options can load from the server and reload when what they depend on changes. */
-function SelectAnswer({ id, item, value, onChange, t, data, error }) {
+function SelectAnswer({ aria, id, item, value, onChange, t, data, error }) {
   const dep = item.depends?.(data);
   const [options, setOptions] = useState(item.load ? null : typeof item.options === "function" ? item.options(data) : item.options);
   useEffect(() => {
@@ -378,6 +398,7 @@ function SelectAnswer({ id, item, value, onChange, t, data, error }) {
   return (
     <select
       id={id}
+      {...aria}
       className="input !min-h-13 !rounded-xl !text-[17px] disabled:cursor-not-allowed disabled:opacity-60"
       value={value ?? ""}
       disabled={waiting || options === null}
@@ -393,7 +414,7 @@ function SelectAnswer({ id, item, value, onChange, t, data, error }) {
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 /** Day / month / year boxes: quicker than a calendar on a cheap phone. Keeps partial picks so nothing resets. */
-function DateAnswer({ item, value, onChange, t, month }) {
+function DateAnswer({ aria, item, value, onChange, t, month }) {
   const [y, m, d] = String(value ?? "").split("-");
   const now = new Date().getFullYear();
   const years = Array.from({ length: item.years ?? 100 }, (_, i) => String(now - (item.minAge ?? 0) - i));
@@ -402,16 +423,16 @@ function DateAnswer({ item, value, onChange, t, month }) {
   return (
     <div className={cx("grid gap-2.5", month ? "grid-cols-2" : "grid-cols-[1fr_1.6fr_1.2fr]")}>
       {!month && (
-        <select className={sel} aria-label={t("Day")} value={d ?? ""} onChange={(e) => write(y, m, e.target.value)}>
+        <select {...aria} className={sel} aria-label={t("Day")} value={d ?? ""} onChange={(e) => write(y, m, e.target.value)}>
           <option value="">{t("Day")}</option>
           {Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0")).map((x) => <option key={x} value={x}>{Number(x)}</option>)}
         </select>
       )}
-      <select className={sel} aria-label={t("Month")} value={m ?? ""} onChange={(e) => write(y, e.target.value, d)}>
+      <select {...aria} className={sel} aria-label={t("Month")} value={m ?? ""} onChange={(e) => write(y, e.target.value, d)}>
         <option value="">{t("Month")}</option>
         {MONTHS.map((name, i) => <option key={name} value={String(i + 1).padStart(2, "0")}>{t(name)}</option>)}
       </select>
-      <select className={sel} aria-label={t("Year")} value={y ?? ""} onChange={(e) => write(e.target.value, m, d)}>
+      <select {...aria} className={sel} aria-label={t("Year")} value={y ?? ""} onChange={(e) => write(e.target.value, m, d)}>
         <option value="">{t("Year")}</option>
         {years.map((x) => <option key={x} value={x}>{x}</option>)}
       </select>

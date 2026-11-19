@@ -48,7 +48,7 @@ export function Tabs({ tabs, current }) {
               href={tab.href}
               aria-current={active ? "page" : undefined}
               className={cx(
-                "-mb-px flex min-h-11 items-center gap-2 border-b-[3px] px-3 text-[15px] font-semibold",
+                "flex min-h-11 items-center gap-2 border-b-[3px] px-3 text-[15px] font-semibold",
                 active ? "border-brand-700 text-brand-800" : "border-transparent text-ink-muted hover:text-ink",
               )}
             >

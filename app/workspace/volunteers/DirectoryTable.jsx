@@ -87,7 +87,7 @@ export default function DirectoryTable({ rows, total, page, per, sizes, query, d
             {total ? <>Showing <span className="font-semibold text-ink">{fmt(first)}–{fmt(last)}</span> of <span className="font-semibold text-ink">{fmt(total)}</span></> : "No records"}
           </p>
         )}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <label className="flex items-center gap-2 text-[14px]">
             <span className="text-ink-muted">Sort</span>
             <select value={sort} onChange={(e) => go({ sort: e.target.value === "newest" ? "" : e.target.value })} className="input !min-h-9 !w-auto !py-1 text-[14px]">
@@ -125,7 +125,7 @@ export default function DirectoryTable({ rows, total, page, per, sizes, query, d
         ))}
       </ul>
 
-      <div className="card hidden overflow-x-auto md:block">
+      <div className="card hidden relative overflow-x-auto md:block">
         <table className="table-clean">
           <thead>
             <tr>

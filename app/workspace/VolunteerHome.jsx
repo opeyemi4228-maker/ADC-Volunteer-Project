@@ -18,6 +18,8 @@ import ProfilePhoto from "@/components/workspace/ProfilePhoto";
 import { Avatar, photoUrl } from "@/components/workspace/Avatar";
 import PrintCard from "./PrintCard";
 import CopyLink from "./CopyLink";
+import BankDetails from "./BankDetails";
+import { bankAccountsOf } from "@/lib/registration";
 
 const SITE = process.env.SITE_URL ?? "http://localhost:3000";
 
@@ -53,6 +55,7 @@ export default async function VolunteerHome({ viewer, volunteerId }) {
   const roleNames = roles.map((r) => labelOf(VOLUNTEER_ROLES, r));
   const work = await portalSummary(await volunteerContext(v.id));
   const photo = v.photo_thumb_key ? photoUrl(v.id, v.photo_updated_at) : null;
+  const bank = (await bankAccountsOf(v.id, { full: true })).map(({ slot, bank, listed, name, number, display }) => ({ slot, bank, listed, name, number, display }));
 
   const steps = [
     { label: "Registered", done: true, when: dateLabel(v.created_at) },
@@ -275,6 +278,8 @@ export default async function VolunteerHome({ viewer, volunteerId }) {
               <p className="text-[13px] text-ink-muted">You sign in with a one-time code sent to your registered phone number. There's no password to remember.</p>
             </div>
           </Panel>
+
+          <BankDetails accounts={bank} ownerName={`${v.first_name} ${v.surname}`} />
         </div>
 
         <div className="min-w-0 space-y-4">

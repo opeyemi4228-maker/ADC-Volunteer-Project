@@ -1,11 +1,13 @@
 import crypto from "node:crypto";
 
-import { one, run, nowIso } from "@/lib/db";
-import { blind, hashPassword, token } from "@/lib/crypto";
+import { one, run } from "@/lib/db";
+import { blind, token } from "@/lib/crypto";
 import { clientIp } from "@/lib/auth";
 import { normalizeEmail, passwordProblem } from "@/lib/validate";
 import { sendEmail, isEmailLive } from "@/lib/notify";
+import { takeRateLimit } from "@/lib/rate-limit";
 import { audit } from "@/lib/audit";
+import { resetPassword } from "@/lib/password-reset";
 import { ok, fail, body } from "@/lib/http";
 
 /**
@@ -19,21 +21,19 @@ const hashToken = (t) => crypto.createHash("sha256").update(t).digest("base64url
 export async function POST(request) {
   const d = await body(request);
   const ip = await clientIp();
+  if (!await takeRateLimit("password-reset-ip", ip, 20, 3600)) return fail(429, "Too many reset attempts. Try again later.");
 
   if (d.token) {
-    const row = await one("SELECT * FROM password_resets WHERE token_hash = :h AND used_at IS NULL AND expires_at > :now", { h: hashToken(String(d.token)), now: nowIso() });
-    if (!row) return fail(400, "This reset link has expired or was already used. Ask for a new one.");
     const problem = passwordProblem(d.password);
     if (problem) return fail(422, problem, { errors: { password: problem } });
-    await run("UPDATE users SET password_hash = :pw WHERE id = :u", { pw: hashPassword(String(d.password)), u: row.user_id });
-    await run("UPDATE password_resets SET used_at = :now WHERE token_hash = :h", { now: nowIso(), h: row.token_hash });
-    await run("DELETE FROM sessions WHERE user_id = :u", { u: row.user_id });
-    await audit({ id: row.user_id }, "password_reset", "user", row.user_id, null, ip);
+    const changed = await resetPassword(hashToken(String(d.token)), String(d.password), ip);
+    if (!changed) return fail(400, "This reset link has expired or was already used. Ask for a new one.");
     return ok({ done: true });
   }
 
   const email = normalizeEmail(d.email);
   if (!email) return fail(422, "Enter the email address you registered with.");
+  if (!await takeRateLimit("password-reset-email", email, 5, 3600)) return ok({ sent: true });
   const user = await one("SELECT id, name FROM users WHERE email_hash = :h AND active = 1", { h: blind(email) });
   let devLink;
   if (user) {

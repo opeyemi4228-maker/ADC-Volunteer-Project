@@ -44,7 +44,7 @@ test("under-18s are blocked and every step validates (§6, §11)", async () => {
   assert.deepEqual(await reg.validateVolunteer(volunteer(), { channel: "ussd" }), {});
   // The website asks for the phone in step 1 (no code any more).
   assert.match((await reg.validateVolunteer(volunteer()))["about.phone"], /Nigerian mobile number/);
-  const web = volunteer();
+  const web = volunteer({ bank: { accounts: [{ bank: "ZENITH BANK", number: "2087654321", name: "Chukwuemeka Obi" }] } });
   web.about = { ...web.about, phone: "0809 111 0099" };
   // No password: members sign in with a one-time code sent to this phone.
   assert.deepEqual(await reg.validateVolunteer(web), {});
@@ -62,6 +62,48 @@ test("exact phone match blocks; similar name + same DOB + same ward is flagged (
   const flags = await db.all("SELECT * FROM duplicate_flags WHERE entity_id = :id", { id: b.id });
   assert.equal(flags.length, 1);
   assert.equal(flags[0].other_id, a.id);
+});
+
+test("the website asks for a bank account; a second one is optional and must differ", async () => {
+  const web = (accounts) => volunteer({ about: { first_name: "Ada", surname: "Eze", gender: "female", dob: "1990-01-01", phone: "0809 111 0098" }, bank: { accounts } });
+  const none = await reg.validateVolunteer(web(undefined));
+  assert.match(none["bank.accounts.0.bank"], /Choose your bank/);
+  assert.match(none["bank.accounts.0.number"], /10-digit/);
+  // Other channels can't collect it, so it is optional there.
+  assert.deepEqual(await reg.validateVolunteer(volunteer(), { channel: "ussd" }), {});
+  // Nicknames and any letter case find the listed bank; spaces in the number are fine.
+  assert.deepEqual(await reg.validateVolunteer(web([{ bank: "GUARANTY TRUST BANK", number: "012 345 6780", name: "Ada Eze" }, {}])), {});
+  const short = await reg.validateVolunteer(web([{ bank: "ACCESS BANK", number: "01234", name: "Ada Eze" }]));
+  assert.match(short["bank.accounts.0.number"], /10 digits/);
+  const twice = await reg.validateVolunteer(web([
+    { bank: "ACCESS BANK", number: "0691234567", name: "Ada Eze" },
+    { bank: "access bank", number: "0691234567", name: "Ada Eze" },
+  ]));
+  assert.match(twice["bank.accounts.1.number"], /same as your first/);
+  const half = await reg.validateVolunteer(web([{ bank: "ACCESS BANK", number: "0691234567", name: "Ada Eze" }, { bank: "KUDA MICROFINANCE BANK" }]));
+  assert.ok(half["bank.accounts.1.number"] && half["bank.accounts.1.name"]);
+  assert.match((await reg.validateVolunteer(web([{ bank: "Not A Real Bank", number: "0691234567", name: "Ada Eze" }])))["bank.accounts.0.bank"], /from the list/);
+  assert.deepEqual(await reg.validateVolunteer(web([{ bank: "Hometown Credit Union", other: true, number: "0691234567", name: "Ada Eze" }])), {});
+});
+
+test("two bank accounts are saved, sealed, and shown masked unless allowed in full", async () => {
+  const v = await reg.createVolunteer(volunteer({
+    about: { first_name: "Bisi", surname: "Ade", gender: "female", dob: "1991-05-05" },
+    bank: { accounts: [
+      { bank: "OPAY DIGITAL SERVICES LIMITED", number: "8034567012", name: "bisi  ade" },
+      { bank: "ZENITH BANK", number: "2234567891", name: "Bisi Ade" },
+    ] },
+  }), { phone: "+2348091110021" });
+  const masked = await reg.bankAccountsOf(v.id);
+  assert.deepEqual(masked.map((a) => [a.slot, a.bank, a.display, a.number, a.name]), [
+    [1, "OPAY DIGITAL SERVICES LIMITED", "•••• 7012", null, "BISI ADE"],
+    [2, "ZENITH BANK", "•••• 7891", null, "BISI ADE"],
+  ]);
+  const full = await reg.bankAccountsOf(v.id, { full: true });
+  assert.equal(full[0].number, "8034567012");
+  assert.equal(full[1].display, "223 456 7891");
+  const rows = await db.all("SELECT row_to_json(t)::text AS j FROM volunteer_bank_accounts t");
+  assert.ok(!rows.some((r) => r.j.includes("8034567012") || r.j.includes("2234567891")), "account numbers are sealed");
 });
 
 test("phone numbers are never stored in clear (§15)", async () => {

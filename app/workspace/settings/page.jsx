@@ -57,11 +57,11 @@ async function Audit({ sp }) {
   const total = await scalar(`SELECT COUNT(*) FROM audit_log WHERE ${where}`, { q, ql: `%${q}%` });
   return (
     <>
-      <form className="mb-4 flex gap-2"><input type="hidden" name="tab" value="audit" /><input className="input max-w-sm" name="q" defaultValue={q} placeholder="Search action or person (e.g. export, view)" aria-label="Search audit log" /><button className="btn btn-secondary">Search</button></form>
+      <form className="mb-4 flex flex-wrap gap-2"><input type="hidden" name="tab" value="audit" /><input className="input min-w-0 flex-1 max-w-sm" name="q" defaultValue={q} placeholder="Search action or person (e.g. export, view)" aria-label="Search audit log" /><button className="btn btn-secondary shrink-0">Search</button></form>
       <p className="t-help mb-3">Every view of a full record, edit, export, message campaign and permission change. Entries cannot be edited or deleted.</p>
-      <Card className="overflow-x-auto">
-        <table className="table-clean">
-          <thead><tr><th>When (UTC)</th><th>Who</th><th>Action</th><th>Record</th><th>IP</th></tr></thead>
+      <Card className="overflow-x-auto" tabIndex={0} role="region" aria-label="Audit log table">
+        <table className="table-clean min-w-[640px]">
+          <thead><tr><th scope="col">When (UTC)</th><th scope="col">Who</th><th scope="col">Action</th><th scope="col">Record</th><th scope="col">IP</th></tr></thead>
           <tbody>
             {rows.map((r) => (
               <tr key={r.id}>

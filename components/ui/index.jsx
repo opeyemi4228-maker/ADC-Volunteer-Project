@@ -113,7 +113,7 @@ export function Field({ id, label, hint, error, optional, required, children, cl
           {hint}
         </p>
       )}
-      {typeof children === "function" ? children({ id, "aria-describedby": [hintId, errId].filter(Boolean).join(" ") || undefined, "aria-invalid": error ? "true" : undefined }) : children}
+      {typeof children === "function" ? children({ id, "aria-required": required || undefined, "aria-describedby": [hintId, errId].filter(Boolean).join(" ") || undefined, "aria-invalid": error ? "true" : undefined }) : children}
       {error && (
         <p id={errId} className="flex items-start gap-1.5 text-[14px] font-medium text-danger" role="alert">
           <XCircle aria-hidden className="mt-0.5 size-4 shrink-0" />

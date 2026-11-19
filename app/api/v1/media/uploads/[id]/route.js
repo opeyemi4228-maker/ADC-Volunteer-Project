@@ -1,9 +1,12 @@
-import fs from "node:fs";
 
-import { getUpload, appendChunk, objectPath } from "@/lib/storage";
-import { run } from "@/lib/db";
+import { getUpload, appendChunk, discardUploadParts } from "@/lib/storage";
+import { run, tx, one } from "@/lib/db";
 import { uploadOwner } from "@/lib/owner";
+import { objectResponse } from "@/lib/objects";
+import { readLimitedBody } from "@/lib/request-body";
 import { ok, fail } from "@/lib/http";
+
+export const maxDuration = 300;
 
 /** GET: where to resume (and, once done, a preview of the thumbnail). */
 export async function GET(request, { params }) {
@@ -11,8 +14,7 @@ export async function GET(request, { params }) {
   const upload = owner ? await getUpload((await params).id, owner) : null;
   if (!upload) return fail(404, "Upload not found.");
   if (new URL(request.url).searchParams.get("preview") && upload.thumbnail_key) {
-    const file = objectPath(upload.thumbnail_key);
-    return new Response(fs.readFileSync(file), { headers: { "Content-Type": "image/jpeg", "Cache-Control": "private, max-age=3600" } });
+    return objectResponse(upload.thumbnail_key, request, { "Content-Type": "image/jpeg", "Cache-Control": "private, no-store" });
   }
   return ok({ offset: upload.offset, size: upload.size, done: Boolean(upload.done), error: upload.error, kind: upload.kind });
 }
@@ -23,9 +25,15 @@ export async function PATCH(request, { params }) {
   const upload = owner ? await getUpload((await params).id, owner) : null;
   if (!upload) return fail(404, "Upload not found.");
   if (upload.error) return fail(422, upload.error);
-  const offset = Number(request.headers.get("Upload-Offset"));
-  const chunk = Buffer.from(await request.arrayBuffer());
-  if (chunk.length > 1024 * 1024) return fail(413, "Chunk too large.");
+  const rawOffset = request.headers.get("Upload-Offset");
+  if (!rawOffset || !/^\d+$/.test(rawOffset) || !Number.isSafeInteger(Number(rawOffset))) return fail(400, "A valid Upload-Offset is required.");
+  const offset = Number(rawOffset);
+  let chunk;
+  try { chunk = await readLimitedBody(request, 1024 * 1024); }
+  catch (error) {
+    if (error instanceof RangeError) return fail(413, "Chunk too large.");
+    return fail(400, "The upload stream was interrupted. Retry this chunk.");
+  }
   const result = await appendChunk(upload, offset, chunk);
   if (result.conflict) return fail(409, "Offset mismatch.", { offset: result.offset });
   if (result.error) return fail(422, result.error);
@@ -36,7 +44,12 @@ export async function DELETE(_request, { params }) {
   const owner = await uploadOwner();
   const upload = owner ? await getUpload((await params).id, owner) : null;
   if (!upload) return fail(404, "Upload not found.");
-  if (!upload.done) fs.rmSync(upload.temp_path, { force: true });
-  await run("DELETE FROM uploads WHERE id = :id AND done = 0", { id: upload.id });
+  await tx(async () => {
+    const current = await one("SELECT * FROM uploads WHERE id = :id AND owner_hash = :o FOR UPDATE", { id: upload.id, o: owner });
+    if (current && !current.done) {
+      await discardUploadParts(current);
+      await run("DELETE FROM uploads WHERE id = :id", { id: current.id });
+    }
+  });
   return ok({ deleted: true });
 }

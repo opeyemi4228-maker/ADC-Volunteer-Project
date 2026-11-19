@@ -82,7 +82,7 @@ export default async function TeamPage({ searchParams }) {
             {people.length === 0 ? (
               <p className="flex items-center gap-2.5 border-t border-line px-5 py-8 text-[14px] text-ink-muted"><Users aria-hidden className="size-5" /> Nobody holds this position yet.</p>
             ) : (
-              <div className="overflow-x-auto border-t border-line">
+              <div className="relative overflow-x-auto border-t border-line">
                 <table className="table-clean">
                   <thead><tr><th className="!pl-5">Person</th><th>Position and area</th><th>Last sign-in</th><th className="!pr-5"><span className="sr-only">Actions</span></th></tr></thead>
                   <tbody>

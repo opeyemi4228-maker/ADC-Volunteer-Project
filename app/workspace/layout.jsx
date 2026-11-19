@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { getViewer } from "@/lib/auth";
+import { SIGN_IN_OPEN } from "@/lib/features";
 import { isVolunteerOnly } from "@/lib/guard";
 import { scalar, getSetting } from "@/lib/db";
 import { scopeSql, homeArea } from "@/lib/scope";
@@ -16,7 +17,7 @@ export const metadata = { title: { default: "Workspace", template: "%s · ADC Wo
 
 export default async function WorkspaceLayout({ children }) {
   const viewer = await getViewer();
-  if (!viewer) redirect("/login");
+  if (!viewer) redirect(SIGN_IN_OPEN ? "/login" : "/signin");
 
   const home = homeArea(viewer);
   const volunteerMode = isVolunteerOnly(viewer);
