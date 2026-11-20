@@ -84,3 +84,11 @@ test('production config validates the OTP and SMS settings', () => {
   assert.match(bad, /AT_USERNAME/);
   assert.match(bad, /carrierpigeon/);
 });
+
+test('a code is shown on screen only when no real sender is set up', () => {
+  assert.equal(sms.consoleCodeAction({}), 'show');
+  assert.equal(sms.consoleCodeAction({ SMS_PROVIDER: 'console' }), 'show');
+  // Twilio Verify is on but failed and fell back to console: never show it.
+  assert.equal(sms.consoleCodeAction({ OTP_PROVIDER: 'twilio_verify', SMS_PROVIDER: 'console', ...twilioEnv }), 'fail');
+  assert.equal(sms.consoleCodeAction({ SMS_PROVIDER: 'termii,console' }), 'fail');
+});
