@@ -37,7 +37,7 @@ export default async function SettingsPage({ searchParams }) {
           <Card className="p-5">
             <h2 className="h-section">Channels</h2>
             <dl className="mt-3 space-y-3 text-[15px]">
-              <div><dt className="font-semibold">SMS and WhatsApp sending</dt><dd className="text-ink-muted">{isConsoleProvider ? "Not connected yet: messages are recorded, not sent, and one-time codes are shown on screen. Set SMS_PROVIDER to go live." : `Provider: ${process.env.SMS_PROVIDER}`}</dd></div>
+              <div><dt className="font-semibold">SMS and WhatsApp sending</dt><dd className="text-ink-muted">{isConsoleProvider ? "Not connected yet: messages are recorded, not sent, and one-time codes are shown on screen. Set SMS_PROVIDER to go live." : `Codes: ${process.env.OTP_PROVIDER === "twilio_verify" ? "Twilio Verify" : "SMS"} · SMS: ${process.env.SMS_PROVIDER}`}</dd></div>
               <div><dt className="font-semibold">USSD</dt><dd className="text-ink-muted">Aggregator callback: <code className="rounded bg-surface-alt px-1">POST /api/v1/ussd/callback</code>. <a className="link" href="/workspace/settings/ussd">Open the USSD simulator</a></dd></div>
               <div><dt className="font-semibold">WhatsApp</dt><dd className="text-ink-muted">Webhook: <code className="rounded bg-surface-alt px-1">/api/v1/whatsapp/webhook</code> (verify token from WHATSAPP_VERIFY_TOKEN)</dd></div>
               <div><dt className="font-semibold">Field agent sync</dt><dd className="text-ink-muted"><code className="rounded bg-surface-alt px-1">POST /api/v1/sync/batch</code></dd></div>

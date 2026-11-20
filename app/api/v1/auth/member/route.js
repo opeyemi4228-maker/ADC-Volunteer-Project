@@ -66,7 +66,7 @@ export async function POST(request) {
 
   if (!input.code) {
     const sent = await requestOtp(phone, "member_signin", await getLang());
-    if (!sent.ok) return fail(429, sent.error, { retryAfter: sent.retryAfter });
+    if (!sent.ok) return fail(sent.status ?? 429, sent.error, { retryAfter: sent.retryAfter });
     return ok({ codeSent: true, display: formatPhone(phone), masked: `…${phone.slice(-4)}`, retryAfter: sent.retryAfter, devCode: sent.devCode });
   }
 

@@ -15,6 +15,6 @@ export async function POST(request) {
   if (!phone) return fail(422, "Enter a Nigerian mobile number.");
   if (await volunteerByPhone(phone)) return fail(409, "This number is already registered.");
   const r = await requestOtp(phone, "agent_confirm");
-  if (!r.ok) return fail(429, r.error);
+  if (!r.ok) return fail(r.status ?? 429, r.error);
   return ok({ sent: true, devCode: r.devCode });
 }

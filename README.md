@@ -25,11 +25,10 @@ To try the system with **synthetic demo data** (40 groups, about 1,400 volunteer
 activities, media and tasks; no real people) on your own machine, set `SEED_DEMO=1`
 and run `npm run seed -- --reset`. Never load demo data into the live database.
 
-Until the SMS API is implemented, `SMS_PROVIDER=console` simulates delivery and
-shows one-time codes on screen, including production builds. This temporary
-fallback does not verify ownership of the phone. Implement `deliver()` in
-`lib/notify.js` and configure a real provider to remove the preview; changing
-the provider name alone does not implement delivery. New authentication outbox
+With `SMS_PROVIDER=console` (the default) delivery is simulated and one-time
+codes appear on screen, including production builds. This does not verify
+ownership of the phone. To send real codes set `OTP_PROVIDER=twilio_verify`
+and/or a real `SMS_PROVIDER` (see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#one-time-codes-sms)). New authentication outbox
 records are redacted, and simulated delivery logs omit recipients and content.
 Production email requires `SMTP_URL`.
 
@@ -190,7 +189,7 @@ The site is a standard Next.js app on Node 22.13 or newer. It runs on Vercel or 
 
 1. **Brand.** Confirm the logo files and colours with the party secretariat (spec §3.1). The current colours are sampled from the supplied logo.
 2. **Secrets.** Set `APP_SECRET`, a long random value. Keep it safe: it encrypts every phone number.
-3. **SMS and email.** Choose an SMS aggregator, set `SMS_PROVIDER`, and implement `deliver()` in `lib/notify.js`. Set `SMTP_URL` and `EMAIL_FROM` so approval emails and password resets are actually sent.
+3. **SMS and email.** Set `OTP_PROVIDER=twilio_verify` with the Twilio Verify keys, and `SMS_PROVIDER` (Africa's Talking, Twilio or Termii, with failover) for other texts. Set `SMTP_URL` and `EMAIL_FROM` so approval emails and password resets are actually sent.
 4. **USSD and WhatsApp.** Provision the short code and the WhatsApp Business number. Set `USSD_CALLBACK_KEY`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET` and `WHATSAPP_TOKEN`.
 5. **Scale.** The database is Postgres with indexes on every filtered column. For national rollout, raise the Neon compute size, put uploads on S3-compatible storage behind a CDN, and add an ffmpeg worker to transcode videos to 720p and 480p.
 6. **Retention.** Agree the retention period with legal counsel and schedule the anonymisation job.
@@ -201,5 +200,5 @@ The site is a standard Next.js app on Node 22.13 or newer. It runs on Vercel or 
 
 See [Vercel + Neon + Cloudflare R2 deployment](docs/DEPLOYMENT.md) for required
 variables, migration order, durable upload storage, cleanup and live smoke checks.
-Run `npm run check:production` after loading the production environment. The
-requested temporary on-screen OTP remains enabled with `SMS_PROVIDER=console`.
+Run `npm run check:production` after loading the production environment. On-screen
+codes stay enabled until `OTP_PROVIDER` or `SMS_PROVIDER` names a real provider.

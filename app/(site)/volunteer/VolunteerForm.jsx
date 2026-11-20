@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 
 import { Card } from "@/components/ui";
@@ -10,6 +10,7 @@ import { GENDERS, PVC_STATUS, VOLUNTEER_ROLES, LANGUAGES, AVAILABILITY, CONTACT_
 import { normalizePhone, isValidName, ageOn, isValidIsoDate } from "@/lib/validate";
 import QuestionFlow from "@/components/forms/QuestionFlow";
 import BankAccounts from "@/components/forms/BankAccounts";
+import PhotoUpload from "@/components/forms/PhotoUpload";
 import { bankAccountProblems } from "@/lib/banks";
 import { api, loadStates, loadLgas, loadUnits } from "@/components/forms/api";
 import { preloadCaptcha } from "@/components/forms/captcha";
@@ -19,10 +20,11 @@ const UNKNOWN = "__unknown";
 const clear = (...keys) => (v, d) => ({ ...d, vote: { ...d.vote, ...Object.fromEntries(keys.map((k) => [k, ""])) } });
 
 /**
- * Volunteer registration in 7 short screens (about 3 minutes).
+ * Volunteer registration in 8 short screens (about 3 minutes).
  * The answers are exactly what POST /api/v1/volunteers expects.
+ * `photo` is shared with the photo screen: whether an upload is still running.
  */
-function buildScreens() {
+function buildScreens(photo) {
   return [
     { id: "help", title: "What would you like to volunteer for? (Choose up to 3)",
       help: "Each person can volunteer for a maximum of THREE (3) things. Pick the three you'd be happiest to do. Once you've chosen three, untick one to change your choice.",
@@ -45,6 +47,22 @@ function buildScreens() {
         { path: "about.dob", kind: "date", label: "Date of birth", hint: "You must be 18 or older.", minAge: 18, years: 90,
           validate: (v) => (!isValidIsoDate(v ?? "") ? "Choose your day, month and year of birth." : ageOn(v) < 18 ? "You must be 18 or older to register as a volunteer." : null) },
         { path: "help.languages", kind: "multi", label: "Languages you speak", options: LANGUAGES, validate: (v) => (!v?.length ? "Choose at least one language." : null) },
+      ] },
+    { id: "photo", title: "Add your photo",
+      help: "A clear photo of your face is needed to finish registering. It goes on your volunteer ID card, so coordinators can recognise you.",
+      items: [
+        { path: "about.photo_upload_id", kind: "custom",
+          render: ({ data, set, t }, error) => (
+            <PhotoUpload
+              value={data.about?.photo_upload_id ?? ""}
+              onChange={(id) => set("about.photo_upload_id", id)}
+              onBusy={(b) => { photo.current.busy = b; }}
+              onPreview={(url) => { photo.current.preview = url; }}
+              invalid={Boolean(error)}
+              t={t}
+            />
+          ),
+          validate: (v) => (photo.current.busy ? "Wait for your photo to finish uploading." : !v ? "Add a photo of yourself to continue." : null) },
       ] },
     { id: "vote", title: "Where do you vote?", help: "It's printed on your voter's card (PVC).",
       items: [
@@ -104,7 +122,8 @@ export default function VolunteerForm({ role = "" }) {
   }));
 
 
-  const screens = useMemo(() => buildScreens(), []);
+  const photo = useRef({ busy: false, preview: null });
+  const screens = useMemo(() => buildScreens(photo), []);
 
   async function submit(d) {
     const body = { ...d, vote: { ...d.vote, pu: d.vote.pu === UNKNOWN ? "" : d.vote.pu, pu_unknown: !d.vote.pu || d.vote.pu === UNKNOWN } };
@@ -117,15 +136,20 @@ export default function VolunteerForm({ role = "" }) {
     return { ok: false, errors: r.data.errors, error: r.error };
   }
 
-  if (done) return <Success done={done} />;
+  if (done) return <Success done={done} photo={photo.current.preview} />;
   return <QuestionFlow flow="volunteer" screens={screens} initial={initial} onSubmit={submit} submitLabel={t("Join as a volunteer")} />;
 }
 
-function Success({ done }) {
+function Success({ done, photo }) {
   const t = useT();
   return (
     <Card className="p-6 text-center sm:p-10">
-      <CheckCircle2 aria-hidden className="mx-auto size-14 text-brand-500" />
+      {photo ? (
+        <div className="relative mx-auto w-fit">
+          <img src={photo} alt="" className="aspect-[4/5] w-28 rounded-2xl object-cover shadow-[0_12px_28px_-14px_rgb(10_115_56/0.55)] ring-1 ring-line" />
+          <CheckCircle2 aria-hidden className="absolute -bottom-2 -right-2 size-9 rounded-full bg-white text-brand-500" />
+        </div>
+      ) : <CheckCircle2 aria-hidden className="mx-auto size-14 text-brand-500" />}
       <h2 className="mt-4 h-page">{t("Welcome, {name}", { name: done.firstName })}</h2>
       <p className="mt-2 text-ink-muted">{t("Your registration is pending verification. We've sent your volunteer ID by SMS.")}</p>
       {SIGN_IN_OPEN && <p className="mt-1 text-ink-muted">{t("Sign in any time with the phone number you registered with. We'll text you a one-time code to sign in. Your certificate appears there once you're verified.")}</p>}

@@ -8,8 +8,9 @@ import { uploadFile } from "@/components/forms/upload";
 import { compressImage } from "./compress";
 import { Avatar } from "./Avatar";
 import { cx } from "@/components/ui";
+import { PROFILE_PHOTO_MAX_MB, PROFILE_PHOTO_TYPES } from "@/lib/options";
 
-const TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
+const TYPES = PROFILE_PHOTO_TYPES;
 
 /**
  * A volunteer's profile photo with a button to change or remove it. The photo
@@ -31,12 +32,12 @@ export default function ProfilePhoto({ src, name, className = "size-14 text-[20p
     setMenu(false);
     if (!file) return;
     if (!TYPES.includes(file.type)) return setError("Choose a JPG, PNG, WebP or HEIC photo.");
-    if (file.size > 10 * 1024 * 1024) return setError("This photo is larger than 10 MB. Choose a smaller one.");
+    if (file.size > PROFILE_PHOTO_MAX_MB * 1024 * 1024) return setError(`This photo is larger than ${PROFILE_PHOTO_MAX_MB} MB. Choose a smaller one.`);
     setBusy(true);
     setProgress(0);
     setPreview(URL.createObjectURL(file));
     try {
-      const up = await uploadFile(await compressImage(file, 1200, 0.85), setProgress);
+      const up = await uploadFile(await compressImage(file, 1200, 0.85), setProgress, { purpose: "profile" });
       if (up.error) throw new Error(up.error);
       const res = await fetch("/api/v1/me/photo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ upload_id: up.id }) });
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? "The photo could not be saved. Try again.");

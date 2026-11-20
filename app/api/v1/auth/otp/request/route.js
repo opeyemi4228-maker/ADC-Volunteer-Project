@@ -14,6 +14,6 @@ export async function POST(request) {
   const denied = await captchaDenied(request, "otp_request", await clientIp());
   if (denied) return denied;
   const result = await requestOtp(phone, purpose, lang);
-  if (!result.ok) return fail(429, result.error, { retryAfter: result.retryAfter });
+  if (!result.ok) return fail(result.status ?? 429, result.error, { retryAfter: result.retryAfter });
   return ok({ phone, retryAfter: result.retryAfter, devCode: result.devCode });
 }

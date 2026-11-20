@@ -23,7 +23,10 @@ preview environments on separate Neon branches and separate R2 buckets.
 | `SMTP_URL` | Authenticated SMTP URL for password-reset emails |
 | `EMAIL_FROM` | Verified sender address |
 | `CRON_SECRET` | Separate random secret of at least 32 characters |
-| `SMS_PROVIDER` | `console` for the explicitly requested temporary OTP fallback |
+| `OTP_PROVIDER` | `twilio_verify` (recommended) or `sms` |
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_VERIFY_SERVICE_SID` | Twilio Verify, when `OTP_PROVIDER=twilio_verify` |
+| `SMS_PROVIDER` | Other texts and the code fallback, tried in order: e.g. `africastalking,termii`. `console` shows codes on screen |
+| `AT_USERNAME`, `AT_API_KEY`, `AT_SENDER_ID` | Africa's Talking, when listed in `SMS_PROVIDER` |
 
 Do not put `DATABASE_URL` (owner credentials), demo seeding, or production secrets
 in public `NEXT_PUBLIC_*` variables. Do not paste credentials into source control.
@@ -35,11 +38,27 @@ a trusted local environment file, use:
 node --env-file=.env.production scripts/check-production.mjs
 ```
 
-The preflight intentionally reports the temporary OTP exception as a warning.
-With `SMS_PROVIDER=console`, codes remain visible on screen even in production.
-That is the requested interim behavior, not verification of phone ownership.
-Implement `deliver()` in `lib/notify.js`, test SMS delivery, then set the real
-provider to stop exposing codes. Merely changing the name cannot enable SMS.
+## One-time codes (SMS)
+
+Recommended: **Twilio Verify** for codes, with a Nigerian gateway as backup.
+
+1. In the Twilio Console, create a Verify service: friendly name `ADC` (it
+   appears in the text), code length 6, expiry 10 minutes. Turn on Fraud Guard,
+   and under Verify geo permissions allow only Nigeria.
+2. Set `OTP_PROVIDER=twilio_verify`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`
+   (or `TWILIO_API_KEY_SID` + `TWILIO_API_KEY_SECRET`) and `TWILIO_VERIFY_SERVICE_SID`.
+   Twilio sends from its own pre-registered senders, so no Nigerian sender ID
+   has to be approved, and it checks the code itself.
+3. For every other text (approval notices etc.) and as the automatic fallback
+   when Twilio Verify is unreachable, set `SMS_PROVIDER` to one or more
+   gateways: `africastalking`, `twilio`, `termii`. Each sender ID must be
+   registered on the Nigerian **transactional** route, or DND numbers drop it.
+4. Run `npm run check:production`, then request a code on MTN, Airtel, Glo
+   and 9mobile numbers (one of them on DND) before launch.
+
+With `SMS_PROVIDER=console` and `OTP_PROVIDER=sms`, codes stay visible on screen
+even in production. The preflight reports this as a warning: it does not
+verify phone ownership.
 
 ## R2 setup
 

@@ -58,6 +58,6 @@ export async function POST(request) {
   const userPhone = open(user.phone_enc);
   await startUserSession(user.id, { mfa: false });
   const sent = await requestOtp(userPhone, "signin");
-  if (!sent.ok) return fail(429, sent.error);
+  if (!sent.ok) return fail(sent.status ?? 429, sent.error);
   return ok({ codeSent: true, masked: `…${userPhone.slice(-4)}`, devCode: sent.devCode });
 }

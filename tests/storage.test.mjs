@@ -82,3 +82,42 @@ test('local photo processing still strips metadata and writes valid derivatives'
     assert.equal(meta.exif, undefined);
   }
 });
+
+test('registration photo: 5 MB photos only, owner-checked, saved on the volunteer once', async () => {
+  const reg = await import('../lib/registration.js');
+  const MB = 1024 * 1024;
+  // The profile purpose takes photos only, and at most 5 MB.
+  assert.match((await storage.createUpload({ ownerHash: 'anon:p1', fileName: 'a.mp4', type: 'video/mp4', size: 1000, purpose: 'profile' })).error, /photo of yourself/);
+  assert.match((await storage.createUpload({ ownerHash: 'anon:p1', fileName: 'a.jpg', type: 'image/jpeg', size: 5 * MB + 1, purpose: 'profile' })).error, /larger than 5 MB/);
+
+  // A real photo, uploaded by one anonymous registrant.
+  const sharp = (await import('sharp')).default;
+  const source = await sharp({ create: { width: 600, height: 800, channels: 3, background: '#557799' } }).jpeg().toBuffer();
+  const made = await storage.createUpload({ ownerHash: 'anon:p1', fileName: 'me.jpg', type: 'image/jpeg', size: source.length, purpose: 'profile' });
+  assert.ok(made.id, made.error);
+  const result = await storage.appendChunk(await storage.getUpload(made.id, 'anon:p1'), 0, source);
+  assert.ok(result.done);
+
+  // Missing, someone else's, or the right one.
+  assert.match((await reg.registrationPhoto('', 'anon:p1')).error, /Add a clear photo/);
+  assert.match((await reg.registrationPhoto(made.id, 'anon:someone-else')).error, /not found/);
+  const { upload } = await reg.registrationPhoto(made.id, 'anon:p1');
+  assert.ok(upload?.medium_key && upload?.thumbnail_key);
+
+  const d = {
+    about: { first_name: 'Amaka', surname: 'Okafor', gender: 'female', dob: '1990-02-03', photo_upload_id: made.id },
+    vote: { state: 'FCT', lga: 'FCT-002', ward: 'FCT-002-09', pu: '', pu_unknown: true, pvc: 'yes' },
+    help: { roles: ['mobiliser'], languages: ['english'], availability: 'weekends', smartphone: 'yes', channel: 'sms' },
+    consent: { accurate: true, data: true },
+  };
+  const v = await reg.createVolunteer(d, { phone: '+2348091119901', photo: upload });
+  const row = await db.one('SELECT photo_key, photo_thumb_key, photo_updated_at FROM volunteers WHERE id = :id', { id: v.id });
+  assert.equal(row.photo_key, upload.medium_key);
+  assert.equal(row.photo_thumb_key, upload.thumbnail_key);
+  assert.ok(row.photo_updated_at);
+
+  // The upload now belongs to that volunteer and can't be used for a second registration.
+  assert.match((await reg.registrationPhoto(made.id, 'anon:p1')).error, /not found/);
+  await assert.rejects(reg.createVolunteer(d, { phone: '+2348091119902', photo: upload }), (e) => e.code === 'photo_used');
+  assert.equal(await db.scalar('SELECT COUNT(*) FROM volunteers WHERE phone_hash IS NOT NULL AND first_name = :f', { f: 'Amaka' }), 1);
+});

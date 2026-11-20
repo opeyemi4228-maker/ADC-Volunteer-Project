@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  ArrowRight, ArrowUpRight, Phone, MapPin, ListChecks, Vote, ClipboardCheck, Megaphone, DoorOpen, Smartphone, Truck,
+  ArrowDown, ArrowRight, ArrowUpRight, Phone, MapPin, ListChecks, Vote, ClipboardCheck, Megaphone, DoorOpen, Smartphone, Truck,
   CalendarDays, Scale, Stethoscope, Laptop, ShieldCheck, HandCoins, Check, BadgeCheck, Landmark, GraduationCap, Award, UsersRound,
 } from "lucide-react";
 
@@ -72,9 +72,31 @@ export default async function HomePage() {
                   {t("Join as a volunteer")}
                   <ArrowRight aria-hidden className="size-5" />
                 </Link>
-                <Link href="/#ways-to-help" className="inline-flex min-h-11 items-center justify-center text-[16px] font-semibold text-white underline decoration-white/35 underline-offset-[6px] hover:decoration-white sm:justify-start">
+                <Link href="/#ways-to-help" className="max-sm:hidden inline-flex min-h-11 items-center justify-center text-[16px] font-semibold text-white underline decoration-white/35 underline-offset-[6px] hover:decoration-white sm:justify-start">
                   {t("See the ways to help")}
                 </Link>
+              </div>
+              {/* The benefits, on screen the moment the page opens (the full cards follow the hero). */}
+              <div className="mt-7 rounded-2xl border border-white/12 bg-white/[0.05] p-4 backdrop-blur-sm sm:mt-8 sm:p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-brand-300">{t("What you get")}</p>
+                  <Link href="/#benefits" className="inline-flex min-h-8 shrink-0 items-center gap-1 text-[13px] font-semibold text-white/75 hover:text-white">
+                    {t("Details")} <ArrowDown aria-hidden className="size-3.5" />
+                  </Link>
+                </div>
+                <ul className="mt-3.5 grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:gap-x-5">
+                  {VOLUNTEER_BENEFITS.map((b) => {
+                    const Icon = BENEFIT_ICONS[b.key];
+                    return (
+                      <li key={b.key} className="flex items-center gap-3 text-[14px] font-semibold leading-snug text-white sm:text-[15px]">
+                        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-300/15 text-brand-300 ring-1 ring-brand-300/25">
+                          <Icon aria-hidden className="size-[18px]" strokeWidth={2.2} />
+                        </span>
+                        {t(b.short)}
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
               <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[13px] text-white/65 sm:mt-7 sm:justify-start sm:gap-x-5 sm:text-[14px]">
                 {[t("Free"), t("About 3 minutes"), t("Works on any phone")].map((x) => (
@@ -135,6 +157,46 @@ export default async function HomePage() {
               </figcaption>
             </figure>
           </div>
+        </div>
+      </section>
+
+      {/* ── Benefits of volunteering: the first section after the hero, seen without scrolling far ── */}
+      <section id="benefits" aria-labelledby="benefits-title" className="container-page relative z-10 scroll-mt-24 pt-12 sm:pt-16">
+        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+          <div className="max-w-2xl">
+            <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-brand-700">{t("Why volunteer")}</p>
+            <h2 id="benefits-title" className="mt-2 text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-balance sm:text-[2.75rem]">{t("Benefits of Volunteering with ADC")}</h2>
+          </div>
+          <Link href="/volunteer" className="btn btn-primary hidden sm:inline-flex">
+            {t("Become a volunteer")} <ArrowRight aria-hidden className="size-4" />
+          </Link>
+        </div>
+        <ol className="mt-8 grid gap-4 sm:mt-10 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
+          {VOLUNTEER_BENEFITS.map((b, i) => {
+            const Icon = BENEFIT_ICONS[b.key];
+            return (
+              <li
+                key={b.key}
+                className="group relative flex flex-col overflow-hidden rounded-3xl bg-white p-6 shadow-[0_18px_40px_-30px_rgb(16_24_20/0.45)] ring-1 ring-line transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_26px_50px_-28px_rgb(10_115_56/0.45)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 sm:p-8"
+              >
+                <span aria-hidden className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-700 via-brand-500 to-accent-500 opacity-80" />
+                <span className="flex items-center justify-between">
+                  <span className="grid size-12 place-items-center rounded-2xl bg-brand-700 text-white shadow-[0_8px_18px_-8px_rgb(10_115_56/0.8)] transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none">
+                    <Icon aria-hidden className="size-6" strokeWidth={2} />
+                  </span>
+                  <span className="num text-[44px] font-bold leading-none tracking-tight text-brand-100" aria-hidden>0{i + 1}</span>
+                </span>
+                <h3 className="mt-6 text-[1.25rem] font-bold leading-tight tracking-[-0.02em]">{t(b.title)}</h3>
+                <p className="mt-3 text-[16px] leading-[1.65] text-ink-muted">{t(b.body)}</p>
+              </li>
+            );
+          })}
+        </ol>
+        <div className="mt-6 flex flex-col items-stretch gap-3 sm:hidden">
+          <Link href="/volunteer" className="btn btn-primary btn-lg w-full justify-center">
+            {t("Become a volunteer")} <ArrowRight aria-hidden className="size-5" />
+          </Link>
+          <p className="text-center text-[13px] text-ink-muted">{t("Free")} · {t("About 3 minutes")} · {t("Works on any phone")}</p>
         </div>
       </section>
 
@@ -200,33 +262,6 @@ export default async function HomePage() {
             {t("No smartphone or data? Dial")} <strong className="font-semibold text-ink">{ussd}</strong> {t("on any network, or ask your ward coordinator.")}
           </Promise>
         </div>
-      </section>
-
-      {/* ── Benefits of volunteering: four numbered reasons ──────────────── */}
-      <section id="benefits" className="container-page reveal scroll-mt-24 pt-24 sm:pt-32">
-        <div className="flex flex-wrap items-end justify-between gap-6">
-          <h2 className="max-w-2xl text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-balance sm:text-[2.75rem]">{t("Benefits of Volunteering with ADC")}</h2>
-          <Link href="/volunteer" className="inline-flex items-center gap-1.5 text-[16px] font-semibold text-brand-700 hover:underline">
-            {t("Become a volunteer")} <ArrowRight aria-hidden className="size-4" />
-          </Link>
-        </div>
-        <ol className="mt-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          {VOLUNTEER_BENEFITS.map((b, i) => {
-            const Icon = BENEFIT_ICONS[b.key];
-            return (
-              <li key={b.key} className="flex flex-col rounded-3xl bg-white p-7 ring-1 ring-line sm:p-8">
-                <span className="flex items-center justify-between">
-                  <span className="grid size-12 place-items-center rounded-full bg-brand-50 text-brand-700">
-                    <Icon aria-hidden className="size-6" strokeWidth={2} />
-                  </span>
-                  <span className="num text-[44px] font-bold leading-none tracking-tight text-line" aria-hidden>{i + 1}</span>
-                </span>
-                <h3 className="mt-6 text-[1.25rem] font-bold leading-tight tracking-[-0.02em]">{t(b.title)}</h3>
-                <p className="mt-3 text-[16px] leading-[1.65] text-ink-muted">{t(b.body)}</p>
-              </li>
-            );
-          })}
-        </ol>
       </section>
 
       {/* ── Callout: one bold statement and one thing to do (Labour's red card, in ADC green) ── */}
