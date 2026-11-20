@@ -115,9 +115,9 @@ test("Account details: filter by bank details given, and download bank columns",
   const cols = (await import("../lib/volunteer-columns.js")).COLUMN_PRESETS.find((p) => p.key === "bank").columns.join(",");
   const f = await exp.volunteerFile(admin, { area: "FCT", bank: "yes" }, { columns: cols, format: "csv", ref: "t" });
   const lines = f.body.trim().split("\n");
-  assert.match(lines[1], /Bank,Account number,Account name,Second bank,Second account number,Second account name/);
+  assert.match(lines[1], /Bank,Account number,Account name,Exported for$/);
   assert.equal(lines.length, 3);
-  assert.match(lines[2], /Access Bank,0123456789,ADA OBI,,,/i);
+  assert.match(lines[2], /Access Bank,0123456789,ADA OBI,/i);
   assert.ok(f.personal);
 });
 

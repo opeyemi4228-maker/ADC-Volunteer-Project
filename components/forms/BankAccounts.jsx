@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { Building2, Check, CheckCircle2, ChevronDown, Lock, Plus, Search, Trash2, X } from "lucide-react";
+import { Building2, Check, CheckCircle2, ChevronDown, Lock, Plus, Search, X } from "lucide-react";
 
 import { cx } from "@/components/ui";
 import {
@@ -10,7 +10,7 @@ import {
 } from "@/lib/banks";
 
 /**
- * The volunteer's bank accounts: one required, a second optional.
+ * The volunteer's bank account: one, required.
  *
  * Each account is a searchable bank picker, the 10-digit account number and
  * the name on the account. Field messages appear once a field is left, or
@@ -25,48 +25,20 @@ export default function BankAccounts({ value, onChange, t, showErrors, ownerName
   // Once Continue has been pressed, keep showing what's still wrong while it's fixed.
   const [tried, setTried] = useState(false);
   useEffect(() => { if (showErrors) setTried(true); }, [showErrors]);
-  const secondRef = useRef(null);
 
   const update = (i, patch) => onChange(accounts.map((a, j) => (j === i ? { ...a, ...patch } : a)));
   const touch = (key) => setTouched((s) => (s[key] ? s : { ...s, [key]: true }));
   const errorFor = (key) => (tried || showErrors || touched[key] ? problems[key] : null);
-
-  function addSecond() {
-    onChange([...accounts, {}]);
-    // Bring the new account into view and start on its bank.
-    requestAnimationFrame(() => {
-      secondRef.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
-      secondRef.current?.querySelector("input")?.focus({ preventScroll: true });
-    });
-  }
-
-  function removeSecond() {
-    onChange(accounts.slice(0, 1));
-    setTouched((s) => Object.fromEntries(Object.entries(s).filter(([k]) => !k.startsWith("1."))));
-  }
 
   return (
     <div className="space-y-4">
       {accounts.slice(0, MAX_BANK_ACCOUNTS).map((a, i) => (
         <section
           key={i}
-          ref={i === 1 ? secondRef : undefined}
           aria-labelledby={`bank-acct-${i}`}
-          className={cx("rounded-2xl border p-4 sm:p-5", i === 0 ? "border-line bg-white" : "animate-fade-up border-line bg-surface-alt/40")}
+          className="rounded-2xl border border-line bg-white p-4 sm:p-5"
         >
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h3 id={`bank-acct-${i}`} className="flex items-center gap-2 text-[16px] font-bold">
-              <span className="grid size-7 place-items-center rounded-full bg-brand-700 text-[13px] font-bold text-white" aria-hidden>{i + 1}</span>
-              {i === 0 ? t("Main account") : t("Second account")}
-              {i === 1 && <span className="text-[13px] font-normal text-ink-muted">({t("optional")})</span>}
-            </h3>
-            {i === 1 && (
-              <button type="button" onClick={removeSecond} className="inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 text-[14px] font-semibold text-danger hover:bg-danger-bg">
-                <Trash2 aria-hidden className="size-4" /> {t("Remove")}
-              </button>
-            )}
-          </div>
-
+          <h3 id={`bank-acct-${i}`} className="sr-only">{t("Bank account")}</h3>
           <div className="grid gap-5">
             <BankPicker
               idBase={`bank-${i}`}
@@ -98,20 +70,6 @@ export default function BankAccounts({ value, onChange, t, showErrors, ownerName
           <Summary account={a} complete={!problems[`${i}.bank`] && !problems[`${i}.number`] && !problems[`${i}.name`]} t={t} />
         </section>
       ))}
-
-      {accounts.length < MAX_BANK_ACCOUNTS && (
-        <button
-          type="button"
-          onClick={addSecond}
-          className="flex w-full items-center gap-3 rounded-2xl border-2 border-dashed border-line p-4 text-left transition-colors hover:border-brand-600 hover:bg-brand-50/50"
-        >
-          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-50 text-brand-700" aria-hidden><Plus className="size-5" /></span>
-          <span className="min-w-0">
-            <span className="block text-[15px] font-semibold">{t("Add a second account")}</span>
-            <span className="block text-[13px] text-ink-muted">{t("Optional. A backup in case a payment to your main account fails.")}</span>
-          </span>
-        </button>
-      )}
 
       <p className="flex items-start gap-2 text-[13px] leading-5 text-ink-muted">
         <Lock aria-hidden className="mt-0.5 size-4 shrink-0" />

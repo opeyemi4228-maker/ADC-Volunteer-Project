@@ -47,7 +47,7 @@ export default function BankDetails({ accounts, ownerName }) {
       <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <h2 id="bank-title" className="flex items-center gap-2 text-[15px] font-bold tracking-tight">
-            <Landmark aria-hidden className="size-4 text-brand-700" /> {t("Bank accounts")}
+            <Landmark aria-hidden className="size-4 text-brand-700" /> {t("Bank account")}
           </h2>
           <p className="mt-0.5 text-[13px] text-ink-muted">{t("Where the campaign will send any payment due to you.")}</p>
         </div>
@@ -77,7 +77,7 @@ export default function BankDetails({ accounts, ownerName }) {
         <ul className="grid gap-3 sm:grid-cols-2">
           {accounts.map((a) => (
             <li key={a.slot} className="min-w-0 rounded-xl border border-line p-3.5">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">{a.slot === 1 ? t("Main account") : t("Second account")}</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">{t("Bank account")}</p>
               <p className="mt-1 truncate text-[14px] font-semibold" title={a.bank}>{a.bank}</p>
               <p className="mt-0.5 font-mono text-[16px] font-bold tracking-wide">{a.display}</p>
               <p className="mt-0.5 truncate text-[13px] text-ink-muted" title={a.name}>{a.name}</p>

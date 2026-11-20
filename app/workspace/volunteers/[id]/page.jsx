@@ -112,7 +112,7 @@ export default async function VolunteerProfile({ params }) {
               <ul className="grid gap-3 sm:grid-cols-2">
                 {bank.map((a) => (
                   <li key={a.slot} className="min-w-0 rounded-xl border border-line p-3.5">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">{a.slot === 1 ? "Main account" : "Second account"}</p>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">Bank account</p>
                     <p className="mt-1 truncate text-[14px] font-semibold" title={a.bank}>{a.bank}</p>
                     {!a.listed && <p className="text-[12px] font-medium text-warning">Not on the bank list: confirm the bank when you call.</p>}
                     <p className="mt-0.5 font-mono text-[16px] font-bold tracking-wide">{a.display}</p>

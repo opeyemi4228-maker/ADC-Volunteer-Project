@@ -87,7 +87,7 @@ function buildScreens(photo) {
             : !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v).trim()) ? "Enter a valid email address." : null) },
       ] },
     { id: "bank", title: "Your bank account",
-      help: "Where the campaign will send any payment due to you as a volunteer. Add your main account; you can add a second one as a backup.",
+      help: "Where the campaign will send any payment due to you as a volunteer. Add one account in your own name.",
       items: [
         { path: "bank.accounts", kind: "custom",
           render: ({ data, set, t }, error) => (
