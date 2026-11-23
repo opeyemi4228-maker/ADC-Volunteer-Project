@@ -92,3 +92,31 @@ test('a code is shown on screen only when no real sender is set up', () => {
   assert.equal(sms.consoleCodeAction({ OTP_PROVIDER: 'twilio_verify', SMS_PROVIDER: 'console', ...twilioEnv }), 'fail');
   assert.equal(sms.consoleCodeAction({ SMS_PROVIDER: 'termii,console' }), 'fail');
 });
+
+test('Twilio Verify: a transient failure is retried once, then succeeds', async () => {
+  const seen = [];
+  const sid = await sms.twilioVerifyStart('+2348031234567', 'en', { env: twilioEnv, retryDelayMs: 0, fetchImpl: fake([[503, { code: 20503, message: 'busy' }], [201, { sid: 'VE9' }]], seen) });
+  assert.equal(sid, 'VE9');
+  assert.equal(seen.length, 2);
+});
+
+test('Twilio Verify: a network error is retried once, then reported as transient', async () => {
+  let calls = 0;
+  const down = async () => { calls += 1; throw new TypeError('fetch failed'); };
+  const err = await sms.twilioVerifyStart('+2348031234567', 'en', { env: twilioEnv, retryDelayMs: 0, fetchImpl: down }).catch((e) => e);
+  assert.equal(calls, 2);
+  assert.ok(err instanceof sms.TwilioError && err.transient);
+  assert.equal(sms.otpRefusal(err), null, 'transient failures fall back instead of refusing');
+});
+
+test('Twilio Verify: definite refusals are not retried and get a clear message', async () => {
+  const seen = [];
+  const err = await sms.twilioVerifyStart('+2348031234567', 'en', { env: twilioEnv, retryDelayMs: 0, fetchImpl: fake([[429, { code: 60203, message: 'Max send attempts reached' }]], seen) }).catch((e) => e);
+  assert.equal(seen.length, 1);
+  assert.equal(err.code, 60203);
+  assert.deepEqual(sms.otpRefusal(err), { status: 429, error: 'Too many codes were sent to this number. Wait 10 minutes, then try again.' });
+  const invalid = await sms.twilioVerifyStart('+2348031234567', 'en', { env: twilioEnv, fetchImpl: fake([[400, { code: 60200, message: 'Invalid parameter' }]]) }).catch((e) => e);
+  assert.match(sms.otpRefusal(invalid).error, /can't receive a code/);
+  const unknown = await sms.twilioVerifyStart('+2348031234567', 'en', { env: twilioEnv, fetchImpl: fake([[400, { code: 99999, message: '?' }]]) }).catch((e) => e);
+  assert.equal(sms.otpRefusal(unknown), null);
+});

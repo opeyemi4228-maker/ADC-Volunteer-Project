@@ -18,7 +18,8 @@
     "admin:create": "node --env-file=.env.production scripts/create-admin.mjs",
     "db:clean": "node --env-file=.env.production scripts/db-clean.mjs",
     "test": "node --test --test-concurrency=2 \"tests/*.test.mjs\"",
-    "check:production": "node scripts/check-production.mjs"
+    "check:production": "node scripts/check-production.mjs",
+    "sms:check": "node --env-file=.env.production scripts/sms-check.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1170.0",
